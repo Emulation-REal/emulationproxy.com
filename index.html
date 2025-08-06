@@ -4,18 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="pageTitle">Emulation's Proxy</title>
-  <link rel="icon" id="favicon" href="https://www.youtube.com/favicon.ico">
+  <link rel="icon" id="favicon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzAwMDEyMCIvPjxwYXRoIGQ9Ik01MCA1MGEzNSAzNSAwIDEgMCAwIDcwIDM1IDM1IDAgMCAwIDAgLTcwWiIgZmlsbD0iIzRhN2NiNyIgb3BhY2l0eT0iMC43Ii8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMTAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzlmN2FlYSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTY1IDUwYTUgNSAwIDEgMCAwIDEwIDUgNSAwIDAgMCAwIC0xMFoiIGZpbGw9IiNmZjZiNmIiLz48L3N2Zz4=">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.4/dist/sweetalert2.all.min.js"></script>
   <style>
     body {
-      background: #0a0a0a;
+      background: linear-gradient(180deg, #0a0a0a, #1a1a1a);
       overflow-x: hidden;
-      color: #e5e7eb;
     }
     #particles-js {
       position: fixed;
@@ -34,31 +33,46 @@
       z-index: -9;
       opacity: 0.6;
     }
-    .top-bar {
-      background: rgba(20, 20, 20, 0.95);
-      border-bottom: 1px solid rgba(75, 108, 183, 0.3);
-      box-shadow: 0 0 20px rgba(75, 108, 183, 0.2);
+    .control-panel {
+      background: rgba(15, 15, 15, 0.95);
+      border: 1px solid rgba(75, 108, 183, 0.4);
+      border-radius: 12px;
+      box-shadow: 0 0 40px rgba(75, 108, 183, 0.3);
       animation: cosmicPulse 2s infinite ease-in-out;
     }
-    .control-panel {
-      background: rgba(20, 20, 20, 0.9);
-      border: 1px solid rgba(75, 108, 183, 0.3);
-      border-radius: 12px;
-      box-shadow: 0 0 30px rgba(75, 108, 183, 0.2);
-      animation: cosmicPulse 2s infinite ease-in-out;
+    .top-bar {
+      background: rgba(10, 10, 10, 0.98);
+      border-bottom: 1px solid rgba(75, 108, 183, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
     }
     .tab {
-      background: rgba(40, 40, 40, 0.8);
+      background: rgba(40, 40, 40, 0.85);
       border-radius: 8px;
       transition: all 0.3s ease;
+      position: relative;
+      padding: 0.5rem 1rem;
     }
     .tab:hover {
-      background: rgba(75, 108, 183, 0.5);
+      background: rgba(75, 108, 183, 0.6);
       transform: translateY(-2px);
     }
     .tab.active {
       background: linear-gradient(145deg, #4b6cb7, #182848);
-      box-shadow: 0 0 20px rgba(75, 108, 183, 0.7);
+      box-shadow: 0 0 25px rgba(75, 108, 183, 0.8);
+    }
+    .tab.loading::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(75, 108, 183, 0.4), transparent);
+      animation: loadingGlow 1.2s infinite;
+    }
+    @keyframes loadingGlow {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
     }
     .btn-cosmic {
       background: linear-gradient(145deg, #4b6cb7, #182848);
@@ -76,7 +90,7 @@
       100% { box-shadow: 0 0 15px rgba(75, 108, 183, 0.8); }
     }
     .error-message {
-      background: rgba(255, 0, 0, 0.2);
+      background: rgba(255, 0, 0, 0.25);
       border: 1px solid #ff4d4d;
       animation: shake 0.3s ease;
     }
@@ -85,43 +99,38 @@
       25% { transform: translateX(-5px); }
       75% { transform: translateX(5px); }
     }
-    .nebula-cloud {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(20px);
-      opacity: 0.3;
-      z-index: -8;
+    .notification {
+      background: rgba(75, 108, 183, 0.9);
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(75, 108, 183, 0.5);
+      animation: slideIn 0.5s ease-out;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="text-gray-200 min-h-screen flex flex-col">
   <div id="particles-js"></div>
   <canvas id="three-canvas"></canvas>
-  <div id="nebula-clouds"></div>
   <div class="top-bar fixed top-0 left-0 w-full p-4 flex flex-wrap gap-2 z-20">
-    <button id="homeTab" class="tab text-gray-200 px-4 py-2 rounded-lg active">Home</button>
-    <button id="nowggTab" class="tab text-gray-200 px-4 py-2 rounded-lg">Now.gg</button>
-    <button id="coolmathTab" class="tab text-gray-200 px-4 py-2 rounded-lg">Coolmath Games</button>
-    <button id="pokiTab" class="tab text-gray-200 px-4 py-2 rounded-lg">Poki</button>
-    <button id="youtubeTab" class="tab text-gray-200 px-4 py-2 rounded-lg">YouTube</button>
-    <div id="proxyTabs" class="flex flex-wrap gap-2"></div>
+    <div id="tabs" class="flex space-x-2"></div>
   </div>
-  <div class="max-w-5xl mx-auto p-8 mt-20 w-full z-10">
+  <div class="max-w-5xl mx-auto p-8 w-full mt-20 z-10">
     <h1 class="text-5xl font-extrabold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
       Emulation's Proxy
     </h1>
-    <div id="homePanel" class="control-panel p-8 mb-8">
+    <div class="control-panel p-8 mb-8">
       <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
         <input 
           id="urlInput" 
           type="text" 
-          placeholder="Enter URL (e.g., https://example.com)" 
+          placeholder="Enter URL (e.g., example.com)" 
           class="flex-1 border border-gray-600 p-3 rounded-lg bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-200 placeholder-gray-400"
         >
         <button id="submitBtn" class="btn-cosmic text-white p-3 rounded-lg">Go</button>
-        <button id="panicBtn" class="btn-cosmic text-white p-3 rounded-lg">Panic (`)</button>
-        <button id="settingsBtn" class="btn-cosmic text-white p-3 rounded-lg">Settings</button>
-        <button id="cloakBtn" class="btn-cosmic text-white p-3 rounded-lg">About:Blank</button>
+        <button id="fullscreenBtn" class="btn-cosmic text-white p-3 rounded-lg">Full Screen</button>
       </div>
       <div id="error" class="error-message hidden text-center mt-4 p-2 rounded-lg"></div>
       <div id="settingsPanel" class="hidden mt-6 p-4 bg-gray-800 rounded-lg">
@@ -134,176 +143,131 @@
           <input id="cloakTitle" type="text" placeholder="Custom Page Title" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
           <input id="cloakFavicon" type="text" placeholder="Favicon URL" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
           <input id="panicUrl" type="text" placeholder="Panic Button URL" value="https://www.youtube.com/@Emulation12" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
+          <button id="panicBtn" class="btn-cosmic text-white p-2 rounded-lg w-full">Trigger Panic</button>
+          <button id="cloakBtn" class="btn-cosmic text-white p-2 rounded-lg w-full">Open in About:Blank</button>
           <select id="themeSelect" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
             <option value="dark">Dark</option>
             <option value="nebula">Nebula</option>
             <option value="starfield">Starfield</option>
           </select>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block mb-1">Particle Density</label>
-              <input id="particleDensity" type="number" min="10" max="200" value="120" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-            </div>
-            <div>
-              <label class="block mb-1">Particle Speed</label>
-              <input id="particleSpeed" type="number" min="1" max="20" value="4" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-            </div>
-            <div>
-              <label class="block mb-1">Particle Color</label>
-              <input id="particleColor" type="color" value="#4b6cb7" class="w-full h-10 border border-gray-600 rounded-lg bg-gray-700">
-            </div>
-            <div>
-              <label class="block mb-1">Particle Shape</label>
-              <select id="particleShape" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-                <option value="circle">Circle</option>
-                <option value="star">Star</option>
-                <option value="triangle">Triangle</option>
-              </select>
-            </div>
-            <div>
-              <label class="block mb-1">Black Hole Size</label>
-              <input id="blackHoleSize" type="number" min="5" max="30" value="15" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-            </div>
-            <div>
-              <label class="block mb-1">Planet Count</label>
-              <input id="planetCount" type="number" min="0" max="10" value="3" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-            </div>
-          </div>
-          <label class="flex items-center">
-            <input id="soundToggle" type="checkbox" class="mr-2">
-            <span>Enable Ambient Sound</span>
-          </label>
+          <label class="block">Particle Density</label>
+          <input id="particleDensity" type="range" min="50" max="300" value="120" class="w-full">
+          <label class="block">Particle Speed</label>
+          <input id="particleSpeed" type="range" min="2" max="15" value="4" class="w-full">
+          <select id="particleType" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
+            <option value="circle">Circle</option>
+            <option value="star">Star</option>
+            <option value="triangle">Triangle</option>
+            <option value="edge">Edge</option>
+          </select>
+          <label class="block">Particle Color</label>
+          <input id="particleColor" type="color" value="#4b6cb7" class="w-full h-10 border border-gray-600 rounded-lg bg-gray-700">
+          <label class="block">Background Opacity</label>
+          <input id="bgOpacity" type="range" min="0.3" max="1" step="0.1" value="0.6" class="w-full">
+          <label class="block">Animation Intensity</label>
+          <input id="animIntensity" type="range" min="0.5" max="2" step="0.1" value="1" class="w-full">
+          <label class="block">Proxy Retry Attempts</label>
+          <input id="proxyRetries" type="number" min="1" max="5" value="2" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
         </div>
       </div>
     </div>
-    <div id="contentFrameContainer" class="rounded-lg overflow-hidden">
+    <div class="rounded-lg overflow-hidden">
       <iframe id="contentFrame" class="w-full h-[700px] border-0"></iframe>
     </div>
+    <div id="notification" class="notification hidden fixed bottom-4 right-4 p-4 text-white"></div>
   </div>
 
   <script>
-    // Initialize Howler.js for ambient sound
-    const sound = new Howl({
-      src: ['https://cdn.pixabay.com/audio/2023/07/31/09-30-22-646_140723.mp3'],
-      loop: true,
-      volume: 0.3
-    });
-
     // Initialize particles.js
-    function initParticles(config) {
-      particlesJS('particles-js', {
-        particles: {
-          number: { value: config.density, density: { enable: true, value_area: 1000 } },
-          color: { value: config.color },
-          shape: { type: config.shape },
-          opacity: { value: 0.6, random: true },
-          size: { value: 3, random: true },
-          line_linked: { enable: true, distance: 100, color: config.color, opacity: 0.4, width: 1 },
-          move: { enable: true, speed: config.speed, direction: 'none', random: true }
+    function initParticles(theme, density = 120, speed = 4, type = 'circle', color = '#4b6cb7') {
+      const configs = {
+        dark: {
+          particles: { number: { value: density, density: { enable: true, value_area: 1000 } }, color: { value: color }, shape: { type }, opacity: { value: 0.6, random: true }, size: { value: 3, random: true }, line_linked: { enable: true, distance: 100, color, opacity: 0.4, width: 1 }, move: { enable: true, speed, direction: 'none', random: true } },
+          interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' } }, modes: { grab: { distance: 150, line_linked: { opacity: 0.7 } }, push: { particles_nb: 4 } } },
+          retina_detect: true
         },
-        interactivity: {
-          detect_on: 'canvas',
-          events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' } },
-          modes: { grab: { distance: 150, line_linked: { opacity: 0.7 } }, push: { particles_nb: 4 } }
+        nebula: {
+          particles: { number: { value: density, density: { enable: true, value_area: 1000 } }, color: { value: color }, shape: { type }, opacity: { value: 0.7, random: true }, size: { value: 4, random: true }, line_linked: { enable: true, distance: 150, color, opacity: 0.5, width: 1.5 }, move: { enable: true, speed, direction: 'none', random: true } },
+          interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'bubble' }, onclick: { enable: true, mode: 'repulse' } }, modes: { bubble: { distance: 200, size: 5, duration: 2 }, repulse: { distance: 100 } } },
+          retina_detect: true
         },
-        retina_detect: true
-      });
+        starfield: {
+          particles: { number: { value: density, density: { enable: true, value_area: 1000 } }, color: { value: color }, shape: { type }, opacity: { value: 0.8, random: true }, size: { value: 2, random: true }, line_linked: { enable: false }, move: { enable: true, speed, direction: 'random', random: true } },
+          interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' } }, modes: { grab: { distance: 150, line_linked: { opacity: 0.7 } }, push: { particles_nb: 4 } } },
+          retina_detect: true
+        }
+      };
+      particlesJS('particles-js', configs[theme]);
     }
-    initParticles({ density: 120, speed: 4, color: '#4b6cb7', shape: 'circle' });
+    initParticles('dark');
 
-    // Initialize Three.js for black hole and planets
+    // Initialize Three.js for black hole, planets, and asteroids
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.position.z = 50;
-    let planets = [];
 
-    function updateThreeJS(size, count) {
-      scene.clear();
-      const discGeometry = new THREE.RingGeometry(5, size, 32);
-      const discMaterial = new THREE.MeshBasicMaterial({ color: 0x1a1a1a, side: THREE.DoubleSide });
-      const blackHole = new THREE.Mesh(discGeometry, discMaterial);
-      scene.add(blackHole);
-      gsap.to(blackHole.rotation, { z: '+=6.28', duration: 10, repeat: -1, ease: 'linear' });
+    // Black hole
+    const discGeometry = new THREE.RingGeometry(5, 15, 32);
+    const discMaterial = new THREE.MeshBasicMaterial({ color: 0x0a0a0a, side: THREE.DoubleSide });
+    const blackHole = new THREE.Mesh(discGeometry, discMaterial);
+    scene.add(blackHole);
+    gsap.to(blackHole.rotation, { z: '+=6.28', duration: 10, repeat: -1, ease: 'linear' });
 
-      planets.forEach(planet => scene.remove(planet));
-      planets = [];
-      for (let i = 0; i < count; i++) {
-        const geometry = new THREE.SphereGeometry(1 + Math.random() * 2, 32, 32);
-        const material = new THREE.MeshBasicMaterial({ color: ['#4b6cb7', '#9f7aea', '#ff6b6b'][i % 3] });
-        const planet = new THREE.Mesh(geometry, material);
-        planet.position.set((Math.random() - 0.5) * 40, (Math.random() - 0.5) * 20, -10);
-        scene.add(planet);
-        planets.push(planet);
-        gsap.to(planet.position, { x: `+=${10 + Math.random() * 20}`, duration: 5 + Math.random() * 5, repeat: -1, yoyo: true, ease: 'sine.inOut' });
-      }
+    // Planets and asteroids
+    const objects = [];
+    for (let i = 0; i < 6; i++) {
+      const isPlanet = i < 3;
+      const geometry = new THREE.SphereGeometry(isPlanet ? 1 + Math.random() * 2 : 0.5 + Math.random(), 32, 32);
+      const material = new THREE.MeshBasicMaterial({ color: ['#4b6cb7', '#9f7aea', '#ff6b6b', '#00cc99', '#ffcc00', '#66ffcc'][i] });
+      const obj = new THREE.Mesh(geometry, material);
+      obj.position.set((Math.random() - 0.5) * 40, (Math.random() - 0.5) * 20, isPlanet ? -10 : -15);
+      scene.add(obj);
+      objects.push(obj);
+      gsap.to(obj.position, { x: `+=${10 + Math.random() * 20}`, duration: isPlanet ? 5 + Math.random() * 5 : 3 + Math.random() * 3, repeat: -1, yoyo: true, ease: 'sine.inOut' });
     }
-    updateThreeJS(15, 3);
 
+    // Animation loop
     function animateThree() {
       requestAnimationFrame(animateThree);
       renderer.render(scene, camera);
     }
     animateThree();
 
-    // Nebula clouds with Anime.js
-    function createNebulaClouds() {
-      const cloudContainer = document.getElementById('nebula-clouds');
-      cloudContainer.innerHTML = '';
-      for (let i = 0; i < 5; i++) {
-        const cloud = document.createElement('div');
-        cloud.className = 'nebula-cloud';
-        cloud.style.width = `${100 + Math.random() * 200}px`;
-        cloud.style.height = cloud.style.width;
-        cloud.style.background = `radial-gradient(circle, rgba(${Math.random() * 50 + 50}, ${Math.random() * 50 + 50}, ${Math.random() * 100 + 100}, 0.5), transparent)`;
-        cloud.style.left = `${Math.random() * 100}%`;
-        cloud.style.top = `${Math.random() * 100}%`;
-        cloudContainer.appendChild(cloud);
-        anime({
-          targets: cloud,
-          translateX: () => anime.random(-50, 50),
-          translateY: () => anime.random(-50, 50),
-          scale: [0.8, 1.2],
-          opacity: [0.2, 0.4],
-          duration: 5000 + Math.random() * 5000,
-          loop: true,
-          easing: 'easeInOutSine'
-        });
-      }
-    }
-    createNebulaClouds();
-
     // DOM elements
     const urlInput = document.getElementById('urlInput');
     const submitBtn = document.getElementById('submitBtn');
-    const panicBtn = document.getElementById('panicBtn');
-    const settingsBtn = document.getElementById('settingsBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
     const cloakBtn = document.getElementById('cloakBtn');
-    const homeTab = document.getElementById('homeTab');
-    const nowggTab = document.getElementById('nowggTab');
-    const coolmathTab = document.getElementById('coolmathTab');
-    const pokiTab = document.getElementById('pokiTab');
-    const youtubeTab = document.getElementById('youtubeTab');
-    const proxyTabs = document.getElementById('proxyTabs');
+    const panicBtn = document.getElementById('panicBtn');
     const errorDiv = document.getElementById('error');
     const contentFrame = document.getElementById('contentFrame');
-    const homePanel = document.getElementById('homePanel');
-    const contentFrameContainer = document.getElementById('contentFrameContainer');
+    const tabsDiv = document.getElementById('tabs');
     const settingsPanel = document.getElementById('settingsPanel');
     const cloakToggle = document.getElementById('cloakToggle');
     const cloakTitle = document.getElementById('cloakTitle');
     const cloakFavicon = document.getElementById('cloakFavicon');
-    const panicUrl = document.getElementById('panicUrl');
+    const panicUrlInput = document.getElementById('panicUrl');
     const themeSelect = document.getElementById('themeSelect');
     const particleDensity = document.getElementById('particleDensity');
     const particleSpeed = document.getElementById('particleSpeed');
+    const particleType = document.getElementById('particleType');
     const particleColor = document.getElementById('particleColor');
-    const particleShape = document.getElementById('particleShape');
-    const blackHoleSize = document.getElementById('blackHoleSize');
-    const planetCount = document.getElementById('planetCount');
-    const soundToggle = document.getElementById('soundToggle');
-    let tabs = [];
+    const bgOpacity = document.getElementById('bgOpacity');
+    const animIntensity = document.getElementById('animIntensity');
+    const proxyRetries = document.getElementById('proxyRetries');
+    const notification = document.getElementById('notification');
+    let tabs = [
+      { id: 'apps', url: null, content: null, label: 'Apps', type: 'link', links: [
+        { name: 'Now.gg', url: 'https://now.gg' },
+        { name: 'Coolmath Games', url: 'https://www.coolmathgames.com' },
+        { name: 'Poki Games', url: 'https://poki.com' },
+        { name: 'YouTube (@Emulation12)', url: 'https://www.youtube.com/@Emulation12' },
+        { name: 'GeForce NOW', url: 'https://www.nvidia.com/en-us/geforce-now/' }
+      ]},
+      { id: 'settings', url: null, content: null, label: 'Settings', type: 'settings' }
+    ];
 
     // Theme management
     function applyTheme(theme) {
@@ -313,125 +277,95 @@
         starfield: 'linear-gradient(180deg, #000000, #0a0a1a)'
       };
       document.body.style.background = backgrounds[theme];
-      document.querySelector('#three-canvas').style.opacity = theme === 'starfield' ? 0.3 : 0.6;
-      createNebulaClouds();
-      initParticles({
-        density: parseInt(particleDensity.value),
-        speed: parseInt(particleSpeed.value),
-        color: particleColor.value,
-        shape: particleShape.value
-      });
+      document.querySelector('#three-canvas').style.opacity = parseFloat(bgOpacity.value);
+      gsap.to('.btn-cosmic, .control-panel, .tab.active', { animationDuration: parseFloat(animIntensity.value) * 1.5, duration: 0.3 });
+      initParticles(theme, parseInt(particleDensity.value), parseInt(particleSpeed.value), particleType.value, particleColor.value);
     }
     themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
-    particleDensity.addEventListener('change', () => applyTheme(themeSelect.value));
-    particleSpeed.addEventListener('change', () => applyTheme(themeSelect.value));
-    particleColor.addEventListener('change', () => applyTheme(themeSelect.value));
-    particleShape.addEventListener('change', () => applyTheme(themeSelect.value));
-    blackHoleSize.addEventListener('change', () => updateThreeJS(parseInt(blackHoleSize.value), parseInt(planetCount.value)));
-    planetCount.addEventListener('change', () => updateThreeJS(parseInt(blackHoleSize.value), parseInt(planetCount.value)));
-    soundToggle.addEventListener('change', () => {
-      if (soundToggle.checked) sound.play();
-      else sound.stop();
-    });
+    particleDensity.addEventListener('input', () => applyTheme(themeSelect.value));
+    particleSpeed.addEventListener('input', () => applyTheme(themeSelect.value));
+    particleType.addEventListener('change', () => applyTheme(themeSelect.value));
+    particleColor.addEventListener('input', () => applyTheme(themeSelect.value));
+    bgOpacity.addEventListener('input', () => applyTheme(themeSelect.value));
+    animIntensity.addEventListener('input', () => applyTheme(themeSelect.value));
     applyTheme('dark');
 
     // Tab cloaking
     function updateCloaking() {
       if (cloakToggle.checked) {
-        document.getElementById('pageTitle').textContent = cloakTitle.value || "Emulation's Proxy";
-        document.getElementById('favicon').href = cloakFavicon.value || 'https://www.youtube.com/favicon.ico';
+        document.getElementById('pageTitle').textContent = cloakTitle.value || 'Emulation\'s Proxy';
+        document.getElementById('favicon').href = cloakFavicon.value || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzAwMDEyMCIvPjxwYXRoIGQ9Ik01MCA1MGEzNSAzNSAwIDEgMCAwIDcwIDM1IDM1IDAgMCAwIDAgLTcwWiIgZmlsbD0iIzRhN2NiNyIgb3BhY2l0eT0iMC43Ii8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMTAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzlmN2FlYSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTY1IDUwYTUgNSAwIDEgMCAwIDEwIDUgNSAwIDAgMCAwIC0xMFoiIGZpbGw9IiNmZjZiNmIiLz48L3N2Zz4=';
       } else {
-        document.getElementById('pageTitle').textContent = "Emulation's Proxy";
-        document.getElementById('favicon').href = 'https://www.youtube.com/favicon.ico';
+        document.getElementById('pageTitle').textContent = 'Emulation\'s Proxy';
+        document.getElementById('favicon').href = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzAwMDEyMCIvPjxwYXRoIGQ9Ik01MCA1MGEzNSAzNSAwIDEgMCAwIDcwIDM1IDM1IDAgMCAwIDAgLTcwWiIgZmlsbD0iIzRhN2NiNyIgb3BhY2l0eT0iMC43Ii8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMTAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzlmN2FlYSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTY1IDUwYTUgNSAwIDEgMCAwIDEwIDUgNSAwIDAgMCAwIC0xMFoiIGZpbGw9IiNmZjZiNmIiLz48L3N2Zz4=';
       }
     }
     cloakToggle.addEventListener('change', updateCloaking);
     cloakTitle.addEventListener('input', updateCloaking);
     cloakFavicon.addEventListener('input', updateCloaking);
 
-    // Add proxy tab
-    function addProxyTab(url, content) {
-      const tabId = Date.now();
-      tabs = tabs.filter(t => t.url !== url);
-      tabs.push({ id: tabId, url, content });
-      proxyTabs.innerHTML = '';
+    // Add tab
+    function addTab(id, url, content, label, type = 'proxy') {
+      tabs = tabs.filter(t => t.url !== url || t.type !== 'proxy');
+      tabs.push({ id, url, content, label, type });
+      renderTabs();
+    }
+
+    // Render tabs
+    function renderTabs() {
+      tabsDiv.innerHTML = '';
       tabs.forEach(tab => {
         const tabBtn = document.createElement('button');
-        tabBtn.className = `tab text-gray-200 px-4 py-2 rounded-lg ${tab.id === tabId ? 'active' : ''}`;
-        tabBtn.textContent = new URL(tab.url).hostname;
+        tabBtn.className = `tab text-gray-200 px-4 py-2 rounded-lg ${tab.id === tabsDiv.dataset.active ? 'active' : ''}`;
+        tabBtn.textContent = tab.label;
         const closeBtn = document.createElement('span');
         closeBtn.textContent = ' ×';
         closeBtn.className = 'ml-2 text-red-400 cursor-pointer';
         closeBtn.onclick = (e) => {
           e.stopPropagation();
           tabs = tabs.filter(t => t.id !== tab.id);
-          proxyTabs.removeChild(tabBtn);
-          if (tab.id === tabId) {
+          if (tab.id === tabsDiv.dataset.active) {
             contentFrame.srcdoc = '';
-            contentFrameContainer.classList.add('hidden');
-            homePanel.classList.remove('hidden');
+            settingsPanel.classList.add('hidden');
           }
+          renderTabs();
         };
         tabBtn.appendChild(closeBtn);
         tabBtn.onclick = () => {
-          contentFrame.srcdoc = tab.content;
-          contentFrameContainer.classList.remove('hidden');
-          homePanel.classList.add('hidden');
-          setActiveTab(tabBtn);
+          tabsDiv.dataset.active = tab.id;
+          if (tab.type === 'proxy' && tab.content) {
+            contentFrame.srcdoc = tab.content;
+            contentFrame.classList.remove('hidden');
+            settingsPanel.classList.add('hidden');
+          } else if (tab.type === 'link') {
+            contentFrame.srcdoc = `<ul class="p-4">${tab.links.map(link => `<li><a href="${link.url}" target="_blank" class="text-blue-400 hover:underline">${link.name}</a></li>`).join('')}</ul>`;
+            contentFrame.classList.remove('hidden');
+            settingsPanel.classList.add('hidden');
+          } else if (tab.type === 'settings') {
+            contentFrame.classList.add('hidden');
+            settingsPanel.classList.remove('hidden');
+          }
+          renderTabs();
+          anime({
+            targets: tabBtn,
+            scale: [0.9, 1],
+            duration: 300,
+            easing: 'easeOutQuad'
+          });
         };
-        proxyTabs.appendChild(tabBtn);
-        gsap.from(tabBtn, { y: -20, opacity: 0, duration: 0.5 });
+        tabsDiv.appendChild(tabBtn);
+        if (tab.id === tabsDiv.dataset.active) {
+          tabBtn.classList.add('active');
+          anime({
+            targets: tabBtn,
+            scale: [0.9, 1],
+            duration: 300,
+            easing: 'easeOutQuad'
+          });
+        }
       });
     }
-
-    // Set active tab
-    function setActiveTab(tabBtn) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tabBtn.classList.add('active');
-      anime({
-        targets: tabBtn,
-        scale: [0.9, 1],
-        duration: 300,
-        easing: 'easeOutQuad'
-      });
-    }
-
-    // Quick link tabs
-    const quickLinks = {
-      nowgg: 'https://now.gg',
-      coolmath: 'https://www.coolmathgames.com',
-      poki: 'https://poki.com',
-      youtube: 'https://www.youtube.com/@Emulation12'
-    };
-    nowggTab.addEventListener('click', () => loadQuickLink('nowgg'));
-    coolmathTab.addEventListener('click', () => loadQuickLink('coolmath'));
-    pokiTab.addEventListener('click', () => loadQuickLink('poki'));
-    youtubeTab.addEventListener('click', () => loadQuickLink('youtube'));
-    homeTab.addEventListener('click', () => {
-      contentFrame.srcdoc = '';
-      contentFrameContainer.classList.add('hidden');
-      homePanel.classList.remove('hidden');
-      setActiveTab(homeTab);
-    });
-
-    async function loadQuickLink(key) {
-      const url = quickLinks[key];
-      try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-        const data = await response.text();
-        contentFrame.srcdoc = data;
-        contentFrameContainer.classList.remove('hidden');
-        homePanel.classList.add('hidden');
-        addProxyTab(url, data);
-        setActiveTab(document.getElementById(`${key}Tab`));
-      } catch (err) {
-        errorDiv.textContent = `Error: ${err.message}. Try another URL or use a custom proxy server.`;
-        errorDiv.classList.remove('hidden');
-        anime({ targets: '#error', opacity: [0, 1], translateY: [10, 0], duration: 500 });
-      }
-    }
+    renderTabs();
 
     // About:Blank cloaking
     cloakBtn.addEventListener('click', () => {
@@ -440,70 +374,150 @@
         const newWindow = window.open('about:blank', '_blank');
         newWindow.document.write(`
           <html>
-            <head><title>${cloakToggle.checked ? cloakTitle.value : "Emulation's Proxy"}</title></head>
+            <head><title>${cloakToggle.checked ? cloakTitle.value : 'Emulation\'s Proxy'}</title></head>
             <body style="margin:0;overflow:hidden;">
               ${currentContent}
             </body>
           </html>
         `);
         newWindow.document.close();
+        Swal.fire({
+          title: 'Success',
+          text: 'Content opened in About:Blank',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+          background: '#1a1a1a',
+          color: '#fff'
+        });
       } else {
         errorDiv.textContent = 'No content to cloak';
         errorDiv.classList.remove('hidden');
-        anime({ targets: '#error', opacity: [0, 1], translateY: [10, 0], duration: 500 });
+        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
       }
     });
 
     // Panic button
     function triggerPanic() {
-      window.location.href = panicUrl.value || 'https://www.youtube.com/@Emulation12';
+      window.location.href = panicUrlInput.value || 'https://www.youtube.com/@Emulation12';
     }
     panicBtn.addEventListener('click', triggerPanic);
     document.addEventListener('keydown', (e) => {
-      if (e.key === '`') triggerPanic();
+      if (e.key === 'Escape') triggerPanic();
     });
 
-    // Settings toggle
-    settingsBtn.addEventListener('click', () => {
-      settingsPanel.classList.toggle('hidden');
-      anime({
-        targets: settingsPanel,
-        opacity: settingsPanel.classList.contains('hidden') ? [1, 0] : [0, 1],
-        translateY: settingsPanel.classList.contains('hidden') ? [0, 20] : [20, 0],
-        duration: 500,
-        easing: 'easeOutQuad'
+    // Full screen
+    fullscreenBtn.addEventListener('click', () => {
+      if (contentFrame.requestFullscreen) {
+        contentFrame.requestFullscreen();
+      } else if (contentFrame.webkitRequestFullscreen) {
+        contentFrame.webkitRequestFullscreen();
+      } else if (contentFrame.msRequestFullscreen) {
+        contentFrame.msRequestFullscreen();
+      }
+      Swal.fire({
+        title: 'Full Screen',
+        text: 'Entered full-screen mode',
+        icon: 'info',
+        timer: 1500,
+        showConfirmButton: false,
+        background: '#1a1a1a',
+        color: '#fff'
       });
     });
 
     // Handle proxy request
+    async function fetchWithRetries(url, retries) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const response = await fetch(url);
+          if (response.ok) return response;
+          throw new Error(`HTTP error ${response.status}`);
+        } catch (err) {
+          if (i === retries - 1) throw err;
+        }
+      }
+    }
     submitBtn.addEventListener('click', async () => {
-      const url = urlInput.value.trim();
+      let url = urlInput.value.trim();
       errorDiv.classList.add('hidden');
       contentFrame.classList.add('hidden');
+      settingsPanel.classList.add('hidden');
 
-      if (!url || !url.match(/^https?:\/\/.+/)) {
-        errorDiv.textContent = 'Please enter a valid URL starting with http:// or https://';
+      if (!url) {
+        errorDiv.textContent = 'Please enter a URL';
         errorDiv.classList.remove('hidden');
-        anime({ targets: '#error', opacity: [0, 1], translateY: [10, 0], duration: 500 });
+        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
         return;
       }
 
+      if (!url.match(/^https?:\/\//)) {
+        url = 'https://' + url;
+      }
+      if (!url.match(/^https?:\/\/.+/)) {
+        errorDiv.textContent = 'Invalid URL format';
+        errorDiv.classList.remove('hidden');
+        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
+        return;
+      }
+
+      const hostname = new URL(url).hostname;
+      notification.textContent = `Going to ${hostname}`;
+      notification.classList.remove('hidden');
+      gsap.fromTo(notification, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 });
+      gsap.to(notification, { opacity: 0, delay: 2, duration: 0.5, onComplete: () => notification.classList.add('hidden') });
+
+      const tabId = Date.now().toString();
+      tabsDiv.dataset.active = tabId;
+      const tabBtn = document.createElement('button');
+      tabBtn.className = 'tab text-gray-200 px-4 py-2 rounded-lg loading';
+      tabBtn.textContent = hostname;
+      tabsDiv.appendChild(tabBtn);
+      anime({
+        targets: tabBtn,
+        scale: [0.9, 1],
+        duration: 300,
+        easing: 'easeOutQuad'
+      });
+
       try {
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const response = await fetch(proxyUrl);
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}. Try another URL or use a custom proxy server.`);
-        }
+        const response = await fetchWithRetries(proxyUrl, parseInt(proxyRetries.value));
         const data = await response.text();
         contentFrame.srcdoc = data;
-        contentFrameContainer.classList.remove('hidden');
-        homePanel.classList.add('hidden');
-        addProxyTab(url, data);
-        setActiveTab(proxyTabs.lastChild);
+        contentFrame.classList.remove('hidden');
+        addTab(tabId, url, data, hostname);
+        anime({
+          targets: contentFrame,
+          opacity: [0, 1],
+          scale: [0.95, 1],
+          duration: 500,
+          easing: 'easeOutQuad'
+        });
+        Swal.fire({
+          title: 'Success',
+          text: `Loaded ${hostname}`,
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+          background: '#1a1a1a',
+          color: '#fff'
+        });
       } catch (err) {
-        errorDiv.textContent = `Error: ${err.message}`;
+        errorDiv.textContent = `Error: ${err.message}. Try another URL or use a custom proxy server.`;
         errorDiv.classList.remove('hidden');
-        anime({ targets: '#error', opacity: [0, 1], translateY: [10, 0], duration: 500 });
+        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
+        tabs = tabs.filter(t => t.id !== tabId);
+        renderTabs();
+        Swal.fire({
+          title: 'Error',
+          text: err.message,
+          icon: 'error',
+          timer: 2000,
+          showConfirmButton: false,
+          background: '#1a1a1a',
+          color: '#fff'
+        });
       }
     });
 
