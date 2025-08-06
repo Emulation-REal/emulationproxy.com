@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="pageTitle">Emulation's Proxy</title>
-  <link rel="icon" id="favicon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImdyYWRpZW50IiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0YjZjYjciIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzE4Mjg0OCIgc3RvcC1vcGFjaXR5PSIwLjUiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0idXJsKCNncmFkaWVudCkiLz48cGF0aCBkPSJNNDggNTBhMjAgMjAgMCAxIDAgMCA0MCAyMCAyMCAwIDAgMCAwIC00MFoiIGZpbGw9IiNmZmZiNmIiIHN0cm9rZT0iIzlmN2FlYSIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik01MCA1MGEzMCAzMCAwIDAgMCA0MiA0MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjMsMyIgb3BhY2l0eT0iMC41Ii8+PHBhdGggZD0iTTYwIDUwYTUgNSAwIDEgMCAwIDEwIDUgNSAwIDAgMCAwIC0xMFoiIGZpbGw9IiM5ZjdhZWEiLz48L3N2Zz4=">
+  <link rel="icon" id="favicon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9IiM0YjZjYjciIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0zMiAzMmExMCAxMCAwIDEgMCAwIDIwIDEwIDEwIDAgMCAwIDAgLTIwWiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC45Ii8+PHBhdGggZD0iTTMyIDMyYTIwIDIwIDAgMCAwIDI4IDI4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5ZjdhZWEiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.4/dist/sweetalert2.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.4/dist/sweetalert2.all.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     body {
       background: linear-gradient(180deg, #0a0a0a, #1a1a1a);
       overflow-x: hidden;
       color: #e5e7eb;
+      margin: 0;
     }
     #particles-js {
       position: fixed;
@@ -207,9 +207,9 @@
       <button id="particleViewBtn" class="btn-cosmic text-white px-4 py-2 rounded-lg" aria-label="3D Particle View"><i class="fas fa-cubes"></i> 3D View</button>
     </div>
   </div>
-  <div class="max-w-5xl mx-auto p-8 w-full mt-20 z-10">
+  <div id="main-content" class="max-w-5xl mx-auto p-8 w-full mt-20 z-10">
     <h1 class="text-5xl font-extrabold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImdyYWRpZW50IiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0YjZjYjciIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzE4Mjg0OCIgc3RvcC1vcGFjaXR5PSIwLjUiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0idXJsKCNncmFkaWVudCkiLz48cGF0aCBkPSJNNDggNTBhMjAgMjAgMCAxIDAgMCA0MCAyMCAyMCAwIDAgMCAwIC00MFoiIGZpbGw9IiNmZmZiNmIiIHN0cm9rZT0iIzlmN2FlYSIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik01MCA1MGEzMCAzMCAwIDAgMCA0MiA0MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjMsMyIgb3BhY2l0eT0iMC41Ii8+PHBhdGggZD0iTTYwIDUwYTUgNSAwIDEgMCAwIDEwIDUgNSAwIDAgMCAwIC0xMFoiIGZpbGw9IiM5ZjdhZWEiLz48L3N2Zz4=" class="w-12 h-12 mr-2">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9IiM0YjZjYjciIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0zMiAzMmExMCAxMCAwIDEgMCAwIDIwIDEwIDEwIDAgMCAwIDAgLTIwWiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC45Ii8+PHBhdGggZD0iTTMyIDMyYTIwIDIwIDAgMCAwIDI4IDI4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5ZjdhZWEiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==" class="w-12 h-12 mr-2">
       Emulation's Proxy
     </h1>
     <div class="control-panel p-8 mb-8">
@@ -233,6 +233,13 @@
             <input id="cloakToggle" type="checkbox" class="mr-2">
             <span><i class="fas fa-mask mr-2"></i> Enable Tab Cloaking</span>
           </label>
+          <select id="cloakPreset" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
+            <option value="">Custom</option>
+            <option value="google">Google</option>
+            <option value="wikipedia">Wikipedia</option>
+            <option value="youtube">YouTube</option>
+            <option value="classroom">Google Classroom</option>
+          </select>
           <input id="cloakTitle" type="text" placeholder="Custom Page Title" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
           <input id="cloakFavicon" type="text" placeholder="Favicon URL" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
           <input id="panicUrl" type="text" placeholder="Panic Button URL" value="https://www.youtube.com/@Emulation12" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
@@ -272,6 +279,9 @@
           <select id="proxySelect" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
             <option value="allorigins">AllOrigins</option>
             <option value="corsproxy">CORS Proxy</option>
+            <option value="yacdn">YACDN</option>
+            <option value="proxyium">Proxyium</option>
+            <option value="corssh">CORS.sh</option>
           </select>
         </div>
       </div>
@@ -284,11 +294,11 @@
         <div class="space-y-4 text-gray-300">
           <p><strong>Emulation's Proxy</strong> is a cosmic-themed proxy website designed for seamless web access with a futuristic interface.</p>
           <ul class="list-disc pl-5">
-            <li><strong>Proxy Access</strong>: Load websites via a proxy (allorigins.win or corsproxy.io) by entering a URL and clicking Go.</li>
-            <li><strong>Tab Cloaking</strong>: Disguise the page title and favicon for privacy (customize in Settings).</li>
-            <li><strong>Panic Button</strong>: Instantly redirect to a safe URL (default: YouTube) with the Escape key or Panic button.</li>
+            <li><strong>Proxy Access</strong>: Load websites via multiple proxies by entering a URL and clicking Go.</li>
+            <li><strong>Tab Cloaking</strong>: Disguise the page title and favicon with presets or custom values (Settings).</li>
+            <li><strong>Panic Button</strong>: Redirect to a safe URL (default: YouTube) via the Panic button.</li>
             <li><strong>Visuals</strong>: Enjoy Three.js animations and customizable particle effects (circle, star, triangle, edge, nebula-cloud, cosmic-dust).</li>
-            <li><strong>3D View</strong>: Explore a 3D particle field with mouse controls.</li>
+            <li><strong>3D View</strong>: Fly through a 3D particle field with WASD, R/F, and mouse controls (Escape to exit).</li>
             <li><strong>Themes</strong>: Switch between Dark, Nebula, and Starfield themes.</li>
             <li><strong>Ambient Sound</strong>: Toggle space-themed audio inspired by <a href="https://www.youtube.com/watch?v=EAsEjQPio24" target="_blank" class="text-blue-400 hover:underline">this YouTube track</a>.</li>
             <li><strong>Socials</strong>: Connect with us on <a href="https://www.youtube.com/@Emulation12" target="_blank" class="text-blue-400 hover:underline"><i class="fab fa-youtube mr-1"></i> YouTube (@Emulation12)</a>.</li>
@@ -313,8 +323,9 @@
     <div id="notification" class="notification hidden fixed bottom-4 right-4 p-4 text-white"></div>
   </div>
   <!-- Space Ambience sound from Pixabay: https://pixabay.com/sound-effects/ambient-space-174687/ by cybercut, CC0 -->
-  <audio id="ambientAudio" loop>
+  <audio id="ambientAudio" preload="auto" loop>
     <source src="https://cdn.pixabay.com/audio/2024/03/20/14-08-49-773_174687.mp3" type="audio/mpeg">
+    <source src="https://cdn.pixabay.com/audio/2024/03/20/14-08-49-773_174687.ogg" type="audio/ogg">
   </audio>
   <script>
     // Sanitize string to prevent injection
@@ -323,7 +334,9 @@
     }
 
     // Initialize particles.js
+    let particlesConfigCache = null;
     function initParticles(theme, density = 120, speed = 4, type = 'circle', color = '#4b6cb7') {
+      if (particlesConfigCache && particlesConfigCache.theme === theme && particlesConfigCache.density === density && particlesConfigCache.speed === speed && particlesConfigCache.type === type && particlesConfigCache.color === color) return;
       const baseConfig = {
         particles: {
           number: { value: density, density: { enable: true, value_area: 1000 } },
@@ -340,7 +353,7 @@
           modes: { grab: { distance: 150, line_linked: { opacity: 0.7 } }, push: { particles_nb: 4 } }
         },
         retina_detect: true
-      };
+    };
       const configs = {
         dark: baseConfig,
         nebula: {
@@ -364,6 +377,7 @@
         }
       };
       particlesJS('particles-js', configs[theme] || baseConfig);
+      particlesConfigCache = { theme, density, speed, type, color };
     }
 
     // Initialize Three.js
@@ -373,55 +387,193 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.position.z = 50;
 
-    // Black hole
-    const discGeometry = new THREE.RingGeometry(5, 15, 32);
-    const discMaterial = new THREE.MeshBasicMaterial({ color: 0x0a0a0a, side: THREE.DoubleSide });
-    const blackHole = new THREE.Mesh(discGeometry, discMaterial);
-    scene.add(blackHole);
-    gsap.to(blackHole.rotation, { z: '+=6.28', duration: 10, repeat: -1, ease: 'linear' });
+    // Nebula background shader
+    const nebulaGeometry = new THREE.SphereGeometry(100, 16, 16);
+    const nebulaShader = {
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        uniform float time;
+        void main() {
+          vec2 uv = vUv * 2.0 - 1.0;
+          float d = length(uv);
+          vec3 color = mix(vec3(0.29, 0.42, 0.71), vec3(0.62, 0.47, 0.92), sin(d * 3.0 + time) * 0.5 + 0.5);
+          gl_FragColor = vec4(color, 0.3);
+        }
+      `,
+      uniforms: { time: { value: 0 } }
+    };
+    const nebulaMaterial = new THREE.ShaderMaterial({
+      ...nebulaShader,
+      side: THREE.BackSide,
+      transparent: true
+    });
+    const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
+    scene.add(nebula);
 
     // Planets and asteroids
     const objects = [];
-    for (let i = 0; i < 8; i++) {
-      const isPlanet = i < 4;
-      const geometry = new THREE.SphereGeometry(isPlanet ? 1 + Math.random() * 2 : 0.5 + Math.random(), 32, 32);
-      const material = new THREE.MeshBasicMaterial({ color: ['#4b6cb7', '#9f7aea', '#ff6b6b', '#00cc99', '#ffcc00', '#66ffcc', '#ff3399', '#33ccff'][i] });
+    for (let i = 0; i < 6; i++) {
+      const isPlanet = i < 3;
+      const geometry = new THREE.SphereGeometry(isPlanet ? 1 + Math.random() * 1.5 : 0.3 + Math.random() * 0.5, 16, 16);
+      const material = new THREE.MeshBasicMaterial({ color: ['#4b6cb7', '#9f7aea', '#ff6b6b', '#00cc99', '#ffcc00', '#66ffcc'][i] });
       const obj = new THREE.Mesh(geometry, material);
       obj.position.set((Math.random() - 0.5) * 40, (Math.random() - 0.5) * 20, isPlanet ? -10 : -15);
       scene.add(obj);
       objects.push(obj);
-      gsap.to(obj.position, { x: `+=${10 + Math.random() * 20}`, duration: isPlanet ? 5 + Math.random() * 5 : 3 + Math.random() * 3, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      gsap.to(obj.position, { x: `+=${10 + Math.random() * 15}`, duration: isPlanet ? 4 + Math.random() * 4 : 2 + Math.random() * 2, repeat: -1, yoyo: true, ease: 'sine.inOut' });
     }
 
-    // 3D Particle field
-    const particleGeometry = new THREE.BufferGeometry();
-    const particleVertices = [];
-    const particleColors = [];
+    // 3D Particle field (instanced for performance)
+    const particleCount = 5000;
+    const sphereGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+    const cubeGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+    const tetraGeometry = new THREE.TetrahedronGeometry(0.15);
+    const instancedGeometry = new THREE.InstancedBufferGeometry();
+    instancedGeometry.copy(sphereGeometry);
+    const instancePositions = new Float32Array(particleCount * 3);
+    const instanceColors = new Float32Array(particleCount * 3);
+    const instanceTypes = new Float32Array(particleCount);
     const colors = [0x4b6cb7, 0x9f7aea, 0xff6b6b, 0x00cc99];
-    for (let i = 0; i < 5000; i++) {
-      particleVertices.push((Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200);
+    for (let i = 0; i < particleCount; i++) {
+      instancePositions[i * 3] = (Math.random() - 0.5) * 200;
+      instancePositions[i * 3 + 1] = (Math.random() - 0.5) * 200;
+      instancePositions[i * 3 + 2] = (Math.random() - 0.5) * 200;
       const color = new THREE.Color(colors[Math.floor(Math.random() * colors.length)]);
-      particleColors.push(color.r, color.g, color.b);
+      instanceColors[i * 3] = color.r;
+      instanceColors[i * 3 + 1] = color.g;
+      instanceColors[i * 3 + 2] = color.b;
+      instanceTypes[i] = Math.floor(Math.random() * 3); // 0: sphere, 1: cube, 2: tetrahedron
     }
-    particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particleVertices, 3));
-    particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
-    const particleMaterial = new THREE.PointsMaterial({ size: 0.3, vertexColors: true, transparent: true, opacity: 0.8 });
-    const particles = new THREE.Points(particleGeometry, particleMaterial);
+    instancedGeometry.setAttribute('instancePosition', new THREE.InstancedBufferAttribute(instancePositions, 3));
+    instancedGeometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(instanceColors, 3));
+    instancedGeometry.setAttribute('instanceType', new THREE.InstancedBufferAttribute(instanceTypes, 1));
+    const particleShader = {
+      vertexShader: `
+        attribute vec3 instancePosition;
+        attribute vec3 instanceColor;
+        attribute float instanceType;
+        varying vec3 vColor;
+        void main() {
+          vColor = instanceColor;
+          vec3 transformed = position + instancePosition;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+          gl_PointSize = instanceType == 0.0 ? 3.0 : instanceType == 1.0 ? 5.0 : 4.0;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        void main() {
+          gl_FragColor = vec4(vColor, 0.8);
+        }
+      `
+    };
+    const particleMaterial = new THREE.ShaderMaterial({
+      ...particleShader,
+      transparent: true
+    });
+    const particles = new THREE.Mesh(instancedGeometry, particleMaterial);
     let particleViewActive = false;
 
-    // OrbitControls for 3D view
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enabled = false;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.rotateSpeed = 0.5;
+    // Fly controls
+    const moveSpeed = 0.5;
+    const lookSpeed = 0.002;
+    let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
+    let yaw = 0, pitch = 0;
+    const onKeyDown = (e) => {
+      if (!particleViewActive) return;
+      switch (e.key.toLowerCase()) {
+        case 'w': moveForward = true; break;
+        case 's': moveBackward = true; break;
+        case 'a': moveLeft = true; break;
+        case 'd': moveRight = true; break;
+        case 'r': moveUp = true; break;
+        case 'f': moveDown = true; break;
+        case 'escape':
+          particleViewBtn.click();
+          break;
+      }
+    };
+    const onKeyUp = (e) => {
+      if (!particleViewActive) return;
+      switch (e.key.toLowerCase()) {
+        case 'w': moveForward = false; break;
+        case 's': moveBackward = false; break;
+        case 'a': moveLeft = false; break;
+        case 'd': moveRight = false; break;
+        case 'r': moveUp = false; break;
+        case 'f': moveDown = false; break;
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
+    let mouseX = 0, mouseY = 0;
+    const onMouseMove = (e) => {
+      if (!particleViewActive) return;
+      mouseX = e.movementX * lookSpeed;
+      mouseY = e.movementY * lookSpeed;
+    };
+    document.addEventListener('mousemove', onMouseMove);
+
+    // Pointer Lock
+    function lockPointer() {
+      const canvas = document.getElementById('three-canvas');
+      canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+      if (canvas.requestPointerLock) {
+        canvas.requestPointerLock();
+      }
+    }
+    document.addEventListener('pointerlockchange', () => {
+      particleViewActive = document.pointerLockElement === document.getElementById('three-canvas');
+      if (!particleViewActive) {
+        scene.remove(particles);
+        document.querySelector('#three-canvas').style.opacity = parseFloat(bgOpacity.value);
+        mainContent.classList.remove('hidden');
+        document.querySelector('.top-bar').classList.remove('hidden');
+        contentFrame.classList.remove('hidden');
+        particleViewBtn.innerHTML = '<i class="fas fa-cubes"></i> 3D View';
+        const activeTab = tabs.find(t => t.id === tabsDiv.dataset.active);
+        contentFrame.srcdoc = activeTab ? activeTab.content : '';
+      }
+    });
+    document.addEventListener('mozpointerlockchange', () => {
+      particleViewActive = document.mozPointerLockElement === document.getElementById('three-canvas');
+      if (!particleViewActive) {
+        scene.remove(particles);
+        document.querySelector('#three-canvas').style.opacity = parseFloat(bgOpacity.value);
+        mainContent.classList.remove('hidden');
+        document.querySelector('.top-bar').classList.remove('hidden');
+        contentFrame.classList.remove('hidden');
+        particleViewBtn.innerHTML = '<i class="fas fa-cubes"></i> 3D View';
+        const activeTab = tabs.find(t => t.id === tabsDiv.dataset.active);
+        contentFrame.srcdoc = activeTab ? activeTab.content : '';
+      }
+    });
 
     // Animation loop
     function animateThree() {
       requestAnimationFrame(animateThree);
+      nebulaShader.uniforms.time.value += 0.01;
       if (particleViewActive) {
         particles.rotation.y += 0.001;
-        controls.update();
+        yaw -= mouseX;
+        pitch -= mouseY;
+        pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+        camera.rotation.set(pitch, yaw, 0);
+        const direction = new THREE.Vector3();
+        camera.getWorldDirection(direction);
+        if (moveForward) camera.position.addScaledVector(direction, moveSpeed);
+        if (moveBackward) camera.position.addScaledVector(direction, -moveSpeed);
+        if (moveLeft) camera.position.addScaledVector(direction.cross(new THREE.Vector3(0, 1, 0)), -moveSpeed);
+        if (moveRight) camera.position.addScaledVector(direction.cross(new THREE.Vector3(0, 1, 0)), moveSpeed);
+        if (moveUp) camera.position.y += moveSpeed;
+        if (moveDown) camera.position.y -= moveSpeed;
       } else {
         objects.forEach(obj => obj.rotation.y += 0.002);
       }
@@ -457,6 +609,7 @@
     const cloakToggle = document.getElementById('cloakToggle');
     const cloakTitle = document.getElementById('cloakTitle');
     const cloakFavicon = document.getElementById('cloakFavicon');
+    const cloakPreset = document.getElementById('cloakPreset');
     const panicUrlInput = document.getElementById('panicUrl');
     const themeSelect = document.getElementById('themeSelect');
     const particleDensity = document.getElementById('particleDensity');
@@ -470,11 +623,12 @@
     const notification = document.getElementById('notification');
     const ambientAudio = document.getElementById('ambientAudio');
     const loader = document.getElementById('loader');
+    const mainContent = document.getElementById('main-content');
     let tabs = JSON.parse(localStorage.getItem('tabs')) || [
       { id: 'new-tab', url: null, content: `
         <div class="new-tab-content">
           <h2 class="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 typing-text">Welcome to Emulation's Proxy</h2>
-          <p class="text-lg mb-6 text-gray-300">Embark on a cosmic journey through the web! Browse securely, save favorites, or explore a 3D particle universe.</p>
+          <p class="text-lg mb-6 text-gray-300">Embark on a cosmic journey through the web! Browse securely, save favorites, or fly through a 3D particle universe.</p>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('urlInput').focus()">
               <i class="fas fa-globe text-3xl text-blue-400 mb-3"></i>
@@ -494,7 +648,7 @@
             <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('particleViewBtn').click()">
               <i class="fas fa-cubes text-3xl text-blue-400 mb-3"></i>
               <h3 class="text-xl font-semibold">3D View</h3>
-              <p class="text-gray-400">Explore an interactive 3D particle field.</p>
+              <p class="text-gray-400">Fly through an interactive 3D particle field.</p>
             </div>
             <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('aboutBtn').click()">
               <i class="fas fa-info-circle text-3xl text-blue-400 mb-3"></i>
@@ -532,32 +686,64 @@
     animIntensity.addEventListener('input', () => applyTheme(themeSelect.value));
     applyTheme('dark');
 
-    // Ambient sound toggle
+    // Ambient sound management
+    let audioLoaded = false;
+    function loadAudio() {
+      if (audioLoaded) return;
+      ambientAudio.load();
+      audioLoaded = true;
+    }
     document.getElementById('ambientSound').addEventListener('change', (e) => {
+      loadAudio();
       if (e.target.checked) {
-        ambientAudio.play().catch(err => {
-          errorDiv.textContent = `Failed to play ambient sound: ${err.message}`;
-          errorDiv.classList.remove('hidden');
-          gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
-        });
+        const playPromise = ambientAudio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            errorDiv.textContent = `Failed to play ambient sound: ${err.message}. Please interact with the page first.`;
+            errorDiv.classList.remove('hidden');
+            gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
+            document.getElementById('ambientSound').checked = false;
+          });
+        }
       } else {
         ambientAudio.pause();
       }
     });
+    document.addEventListener('click', () => {
+      if (document.getElementById('ambientSound').checked && !audioLoaded) {
+        loadAudio();
+        ambientAudio.play().catch(() => {});
+      }
+    }, { once: true });
 
-    // Tab cloaking
+    // Tab cloaking with presets
+    const cloakPresets = {
+      google: { title: 'Google', favicon: 'https://www.google.com/favicon.ico' },
+      wikipedia: { title: 'Wikipedia', favicon: 'https://en.wikipedia.org/favicon.ico' },
+      youtube: { title: 'YouTube', favicon: 'https://www.youtube.com/favicon.ico' },
+      classroom: { title: 'Google Classroom', favicon: 'https://classroom.google.com/favicon.ico' }
+    };
     function updateCloaking() {
       if (cloakToggle.checked) {
-        document.getElementById('pageTitle').textContent = cloakTitle.value || "Emulation's Proxy";
-        document.getElementById('favicon').href = cloakFavicon.value || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImdyYWRpZW50IiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0YjZjYjciIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzE4Mjg0OCIgc3RvcC1vcGFjaXR5PSIwLjUiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0idXJsKCNncmFkaWVudCkiLz48cGF0aCBkPSJNNDggNTBhMjAgMjAgMCAxIDAgMCA0MCAyMCAyMCAwIDAgMCAwIC00MFoiIGZpbGw9IiNmZmZiNmIiIHN0cm9rZT0iIzlmN2FlYSIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik01MCA1MGEzMCAzMCAwIDAgMCA0MiA0MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjMsMyIgb3BhY2l0eT0iMC41Ii8+PHBhdGggZD0iTTYwIDUwYTUgNSAwIDEgMCAwIDEwIDUgNSAwIDAgMCAwIC0xMFoiIGZpbGw9IiM5ZjdhZWEiLz48L3N2Zz4=';
+        const preset = cloakPreset.value;
+        if (preset && cloakPresets[preset]) {
+          document.getElementById('pageTitle').textContent = cloakPresets[preset].title;
+          document.getElementById('favicon').href = cloakPresets[preset].favicon;
+          cloakTitle.value = cloakPresets[preset].title;
+          cloakFavicon.value = cloakPresets[preset].favicon;
+        } else {
+          document.getElementById('pageTitle').textContent = cloakTitle.value || "Emulation's Proxy";
+          document.getElementById('favicon').href = cloakFavicon.value || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9IiM0YjZjYjciIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0zMiAzMmExMCAxMCAwIDEgMCAwIDIwIDEwIDEwIDAgMCAwIDAgLTIwWiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC45Ii8+PHBhdGggZD0iTTMyIDMyYTIwIDIwIDAgMCAwIDI4IDI4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5ZjdhZWEiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==';
+        }
       } else {
         document.getElementById('pageTitle').textContent = "Emulation's Proxy";
-        document.getElementById('favicon').href = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImdyYWRpZW50IiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0YjZjYjciIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzE4Mjg0OCIgc3RvcC1vcGFjaXR5PSIwLjUiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0idXJsKCNncmFkaWVudCkiLz48cGF0aCBkPSJNNDggNTBhMjAgMjAgMCAxIDAgMCA0MCAyMCAyMCAwIDAgMCAwIC00MFoiIGZpbGw9IiNmZmZiNmIiIHN0cm9rZT0iIzlmN2FlYSIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik01MCA1MGEzMCAzMCAwIDAgMCA0MiA0MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjMsMyIgb3BhY2l0eT0iMC41Ii8+PHBhdGggZD0iTTYwIDUwYTUgNSAwIDEgMCAwIDEwIDUgNSAwIDAgMCAwIC0xMFoiIGZpbGw9IiM5ZjdhZWEiLz48L3N2Zz4=';
+        document.getElementById('favicon').href = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9IiM4NDAwZmYiIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0zMiAzMmExMCAxMCAwIDEgMCAwIDIwIDEwIDEwIDAgMCAwIDAgLTIwWiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC45Ii8+PHBhdGggZD0iTTMyIDMyYTIwIDIwIDAgMCAwIDI4IDI4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5ZjdhZWEiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==';
       }
     }
     cloakToggle.addEventListener('change', updateCloaking);
-    cloakTitle.addEventListener('input', updateCloaking);
-    cloakFavicon.addEventListener('input', updateCloaking);
+    cloakTitle.addEventListener('input', () => { cloakPreset.value = ''; updateCloaking(); });
+    cloakFavicon.addEventListener('input', () => { cloakPreset.value = ''; updateCloaking(); });
+    cloakPreset.addEventListener('change', updateCloaking);
 
     // Toggle panels
     function togglePanel(panel, button) {
@@ -577,13 +763,14 @@
       particleViewActive = !particleViewActive;
       if (particleViewActive) {
         scene.add(particles);
-        controls.enabled = true;
         document.querySelector('#three-canvas').style.opacity = 1;
-        [settingsPanel, favoritesPanel, aboutPanel, contentFrame].forEach(el => el.classList.add('hidden'));
+        mainContent.classList.add('hidden');
+        document.querySelector('.top-bar').classList.add('hidden');
+        lockPointer();
         particleViewBtn.innerHTML = '<i class="fas fa-times"></i> Exit 3D View';
         Swal.fire({
           title: '3D Particle View',
-          text: 'Use mouse to rotate and scroll to zoom. Click again to exit.',
+          text: 'Use WASD to move, R/F to go up/down, mouse to look around, Esc to exit.',
           icon: 'info',
           timer: 2000,
           showConfirmButton: false,
@@ -592,8 +779,11 @@
         });
       } else {
         scene.remove(particles);
-        controls.enabled = false;
+        document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
+        if (document.exitPointerLock) document.exitPointerLock();
         document.querySelector('#three-canvas').style.opacity = parseFloat(bgOpacity.value);
+        mainContent.classList.remove('hidden');
+        document.querySelector('.top-bar').classList.remove('hidden');
         contentFrame.classList.remove('hidden');
         particleViewBtn.innerHTML = '<i class="fas fa-cubes"></i> 3D View';
         const activeTab = tabs.find(t => t.id === tabsDiv.dataset.active);
@@ -730,7 +920,7 @@
       addTab(Date.now().toString(), null, `
         <div class="new-tab-content">
           <h2 class="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 typing-text">Welcome to Emulation's Proxy</h2>
-          <p class="text-lg mb-6 text-gray-300">Embark on a cosmic journey through the web! Browse securely, save favorites, or explore a 3D particle universe.</p>
+          <p class="text-lg mb-6 text-gray-300">Embark on a cosmic journey through the web! Browse securely, save favorites, or fly through a 3D particle universe.</p>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('urlInput').focus()">
               <i class="fas fa-globe text-3xl text-blue-400 mb-3"></i>
@@ -750,7 +940,7 @@
             <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('particleViewBtn').click()">
               <i class="fas fa-cubes text-3xl text-blue-400 mb-3"></i>
               <h3 class="text-xl font-semibold">3D View</h3>
-              <p class="text-gray-400">Explore an interactive 3D particle field.</p>
+              <p class="text-gray-400">Fly through an interactive 3D particle field.</p>
             </div>
             <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('aboutBtn').click()">
               <i class="fas fa-info-circle text-3xl text-blue-400 mb-3"></i>
@@ -812,7 +1002,7 @@
     }
     panicBtn.addEventListener('click', triggerPanic);
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') triggerPanic();
+      if (e.key === 'Escape' && !particleViewActive) triggerPanic();
     });
 
     // Full screen
@@ -839,7 +1029,10 @@
     async function fetchWithRetries(url, retries) {
       const proxyUrls = {
         allorigins: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-        corsproxy: `https://corsproxy.io/?${encodeURIComponent(url)}`
+        corsproxy: `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        yacdn: `https://yacdn.org/proxy/${encodeURIComponent(url)}`,
+        proxyium: `https://api.proxyium.com/?url=${encodeURIComponent(url)}`,
+        corssh: `https://cors.sh/${encodeURIComponent(url)}`
       };
       const selectedProxy = proxySelect.value;
       for (let i = 0; i < retries; i++) {
