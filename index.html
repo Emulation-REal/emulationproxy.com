@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">Emulation's Proxy</title>
+  <link rel="icon" id="favicon" href="https://www.youtube.com/favicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <style>
+    body {
+      background: #0a0a0a;
+      overflow-x: hidden;
+    }
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -10;
+    }
+    #three-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -9;
+      opacity: 0.7;
+    }
+    .control-panel {
+      background: rgba(20, 20, 20, 0.9);
+      border: 1px solid rgba(75, 108, 183, 0.3);
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(75, 108, 183, 0.2);
+      animation: cosmicPulse 2s infinite ease-in-out;
+    }
+    .tab {
+      background: rgba(40, 40, 40, 0.8);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    .tab:hover {
+      background: rgba(75, 108, 183, 0.5);
+      transform: translateY(-2px);
+    }
+    .tab.active {
+      background: linear-gradient(145deg, #4b6cb7, #182848);
+      box-shadow: 0 0 20px rgba(75, 108, 183, 0.7);
+    }
+    .btn-cosmic {
+      background: linear-gradient(145deg, #4b6cb7, #182848);
+      box-shadow: 0 0 15px rgba(75, 108, 183, 0.8), 0 0 30px rgba(75, 108, 183, 0.4);
+      transition: all 0.3s ease;
+      animation: cosmicPulse 1.5s infinite ease-in-out;
+    }
+    .btn-cosmic:hover {
+      box-shadow: 0 0 25px rgba(75, 108, 183, 1), 0 0 40px rgba(75, 108, 183, 0.6);
+      transform: scale(1.05);
+    }
+    @keyframes cosmicPulse {
+      0% { box-shadow: 0 0 15px rgba(75, 108, 183, 0.8); }
+      50% { box-shadow: 0 0 25px rgba(75, 108, 183, 0.4); }
+      100% { box-shadow: 0 0 15px rgba(75, 108, 183, 0.8); }
+    }
+    .sidebar {
+      background: rgba(20, 20, 20, 0.9);
+      box-shadow: 0 0 20px rgba(75, 108, 183, 0.2);
+      animation: cosmicPulse 2s infinite ease-in-out;
+    }
+    .error-message {
+      background: rgba(255, 0, 0, 0.2);
+      border: 1px solid #ff4d4d;
+      animation: shake 0.3s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  </style>
+</head>
+<body class="text-gray-200 min-h-screen flex">
+  <div id="particles-js"></div>
+  <canvas id="three-canvas"></canvas>
+  <div class="sidebar fixed top-0 left-0 h-full w-64 p-4 hidden sm:block">
+    <h2 class="text-xl font-bold mb-4 text-blue-400">Quick Links</h2>
+    <ul class="space-y-2">
+      <li><a href="https://now.gg" target="_blank" class="text-blue-300 hover:text-blue-500">Now.gg</a></li>
+      <li><a href="https://www.coolmathgames.com" target="_blank" class="text-blue-300 hover:text-blue-500">Coolmath Games</a></li>
+      <li><a href="https://www.youtube.com/@Emulation12" target="_blank" class="text-blue-300 hover:text-blue-500">YouTube (@Emulation12)</a></li>
+      <li><a href="https://poki.com" target="_blank" class="text-blue-300 hover:text-blue-500">Poki Games</a></li>
+    </ul>
+  </div>
+  <div class="max-w-5xl mx-auto p-8 w-full ml-0 sm:ml-64 z-10">
+    <h1 class="text-5xl font-extrabold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+      Emulation's Proxy
+    </h1>
+    <div class="control-panel p-8 mb-8">
+      <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
+        <input 
+          id="urlInput" 
+          type="text" 
+          placeholder="Enter URL (e.g., https://example.com)" 
+          class="flex-1 border border-gray-600 p-3 rounded-lg bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-200 placeholder-gray-400"
+        >
+        <button id="submitBtn" class="btn-cosmic text-white p-3 rounded-lg">Go</button>
+        <button id="panicBtn" class="btn-cosmic text-white p-3 rounded-lg">Panic</button>
+        <button id="settingsBtn" class="btn-cosmic text-white p-3 rounded-lg">Settings</button>
+        <button id="cloakBtn" class="btn-cosmic text-white p-3 rounded-lg">About:Blank</button>
+      </div>
+      <div id="error" class="error-message hidden text-center mt-4 p-2 rounded-lg"></div>
+      <div id="settingsPanel" class="hidden mt-6 p-4 bg-gray-800 rounded-lg">
+        <h2 class="text-lg font-bold mb-4 text-blue-400">Settings</h2>
+        <div class="space-y-4">
+          <label class="flex items-center">
+            <input id="cloakToggle" type="checkbox" class="mr-2">
+            <span>Enable Tab Cloaking</span>
+          </label>
+          <input id="cloakTitle" type="text" placeholder="Custom Page Title" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
+          <input id="cloakFavicon" type="text" placeholder="Favicon URL" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
+          <select id="themeSelect" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
+            <option value="dark">Dark</option>
+            <option value="nebula">Nebula</option>
+            <option value="starfield">Starfield</option>
+          </select>
+          <input id="panicUrl" type="text" placeholder="Panic Button URL" value="https://www.youtube.com/@Emulation12" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
+        </div>
+      </div>
+    </div>
+    <div id="tabs" class="flex space-x-2 mb-6 overflow-x-auto"></div>
+    <div class="rounded-lg overflow-hidden">
+      <iframe id="contentFrame" class="w-full h-[700px] border-0"></iframe>
+    </div>
+  </div>
+
+  <script>
+    // Initialize particles.js
+    function initParticles(theme) {
+      const configs = {
+        dark: {
+          particles: { number: { value: 120, density: { enable: true, value_area: 1000 } }, color: { value: ['#4b6cb7', '#ffffff'] }, shape: { type: 'circle' }, opacity: { value: 0.6, random: true }, size: { value: 3, random: true }, line_linked: { enable: true, distance: 100, color: '#4b6cb7', opacity: 0.4, width: 1 }, move: { enable: true, speed: 4, direction: 'none', random: true } },
+          interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' } }, modes: { grab: { distance: 150, line_linked: { opacity: 0.7 } }, push: { particles_nb: 4 } } },
+          retina_detect: true
+        },
+        nebula: {
+          particles: { number: { value: 80, density: { enable: true, value_area: 1000 } }, color: { value: ['#9f7aea', '#ff6b6b'] }, shape: { type: 'star' }, opacity: { value: 0.7, random: true }, size: { value: 4, random: true }, line_linked: { enable: true, distance: 150, color: '#9f7aea', opacity: 0.5, width: 1.5 }, move: { enable: true, speed: 6, direction: 'none', random: true } },
+          interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'bubble' }, onclick: { enable: true, mode: 'repulse' } }, modes: { bubble: { distance: 200, size: 5, duration: 2 }, repulse: { distance: 100 } } },
+          retina_detect: true
+        },
+        starfield: {
+          particles: { number: { value: 150, density: { enable: true, value_area: 1000 } }, color: { value: '#ffffff' }, shape: { type: 'circle' }, opacity: { value: 0.8, random: true }, size: { value: 2, random: true }, line_linked: { enable: false }, move: { enable: true, speed: 8, direction: 'random', random: true } },
+          interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' } }, modes: { grab: { distance: 150, line_linked: { opacity: 0.7 } }, push: { particles_nb: 4 } } },
+          retina_detect: true
+        }
+      };
+      particlesJS('particles-js', configs[theme]);
+    }
+    initParticles('dark');
+
+    // Initialize Three.js for black hole and planets
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.position.z = 50;
+
+    // Black hole (swirling disc)
+    const discGeometry = new THREE.RingGeometry(5, 15, 32);
+    const discMaterial = new THREE.MeshBasicMaterial({ color: 0x1a1a1a, side: THREE.DoubleSide });
+    const blackHole = new THREE.Mesh(discGeometry, discMaterial);
+    scene.add(blackHole);
+    gsap.to(blackHole.rotation, { z: '+=6.28', duration: 10, repeat: -1, ease: 'linear' });
+
+    // Planets
+    const planets = [];
+    for (let i = 0; i < 3; i++) {
+      const geometry = new THREE.SphereGeometry(1 + Math.random() * 2, 32, 32);
+      const material = new THREE.MeshBasicMaterial({ color: ['#4b6cb7', '#9f7aea', '#ff6b6b'][i] });
+      const planet = new THREE.Mesh(geometry, material);
+      planet.position.set((Math.random() - 0.5) * 40, (Math.random() - 0.5) * 20, -10);
+      scene.add(planet);
+      planets.push(planet);
+      gsap.to(planet.position, { x: `+=${10 + Math.random() * 20}`, duration: 5 + Math.random() * 5, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    }
+
+    // Animation loop
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      renderer.render(scene, camera);
+    }
+    animateThree();
+
+    // DOM elements
+    const urlInput = document.getElementById('urlInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const panicBtn = document.getElementById('panicBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const cloakBtn = document.getElementById('cloakBtn');
+    const errorDiv = document.getElementById('error');
+    const contentFrame = document.getElementById('contentFrame');
+    const tabsDiv = document.getElementById('tabs');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const cloakToggle = document.getElementById('cloakToggle');
+    const cloakTitle = document.getElementById('cloakTitle');
+    const cloakFavicon = document.getElementById('cloakFavicon');
+    const themeSelect = document.getElementById('themeSelect');
+    const panicUrlInput = document.getElementById('panicUrl');
+    let tabs = [];
+
+    // Theme management
+    function applyTheme(theme) {
+      const backgrounds = {
+        dark: 'linear-gradient(180deg, #0a0a0a, #1a1a1a)',
+        nebula: 'linear-gradient(180deg, #1a0033, #330066)',
+        starfield: 'linear-gradient(180deg, #000000, #0a0a1a)'
+      };
+      document.body.style.background = backgrounds[theme];
+      document.querySelector('#three-canvas').style.opacity = theme === 'starfield' ? 0.3 : 0.7;
+      initParticles(theme);
+    }
+    themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
+    applyTheme('dark');
+
+    // Tab cloaking
+    function updateCloaking() {
+      if (cloakToggle.checked) {
+        document.getElementById('pageTitle').textContent = cloakTitle.value || 'Emulation\'s Proxy';
+        document.getElementById('favicon').href = cloakFavicon.value || 'https://www.youtube.com/favicon.ico';
+      } else {
+        document.getElementById('pageTitle').textContent = 'Emulation\'s Proxy';
+        document.getElementById('favicon').href = 'https://www.youtube.com/favicon.ico';
+      }
+    }
+    cloakToggle.addEventListener('change', updateCloaking);
+    cloakTitle.addEventListener('input', updateCloaking);
+    cloakFavicon.addEventListener('input', updateCloaking);
+
+    // Add new tab
+    function addTab(url, content) {
+      const tabId = Date.now();
+      tabs = tabs.filter(t => t.url !== url);
+      tabs.push({ id: tabId, url, content });
+      tabsDiv.innerHTML = '';
+      tabs.forEach(tab => {
+        const tabBtn = document.createElement('button');
+        tabBtn.className = `tab text-gray-200 px-4 py-2 rounded-lg ${tab.id === tabId ? 'active' : ''}`;
+        tabBtn.textContent = new URL(tab.url).hostname;
+        const closeBtn = document.createElement('span');
+        closeBtn.textContent = ' ×';
+        closeBtn.className = 'ml-2 text-red-400 cursor-pointer';
+        closeBtn.onclick = (e) => {
+          e.stopPropagation();
+          tabs = tabs.filter(t => t.id !== tab.id);
+          tabsDiv.removeChild(tabBtn);
+          if (tab.id === tabId) contentFrame.srcdoc = '';
+        };
+        tabBtn.appendChild(closeBtn);
+        tabBtn.onclick = () => {
+          contentFrame.srcdoc = tab.content;
+          tabsDiv.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tabBtn.classList.add('active');
+          gsap.fromTo(tabBtn, { scale: 0.9 }, { scale: 1, duration: 0.3 });
+        };
+        tabsDiv.appendChild(tabBtn);
+        gsap.from(tabBtn, { y: -20, opacity: 0, duration: 0.5 });
+      });
+    }
+
+    // About:Blank cloaking
+    cloakBtn.addEventListener('click', () => {
+      const currentContent = contentFrame.srcdoc;
+      if (currentContent) {
+        const newWindow = window.open('about:blank', '_blank');
+        newWindow.document.write(`
+          <html>
+            <head><title>${cloakToggle.checked ? cloakTitle.value : 'Emulation\'s Proxy'}</title></head>
+            <body style="margin:0;overflow:hidden;">
+              ${currentContent}
+            </body>
+          </html>
+        `);
+        newWindow.document.close();
+      } else {
+        errorDiv.textContent = 'No content to cloak';
+        errorDiv.classList.remove('hidden');
+        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
+      }
+    });
+
+    // Panic button
+    function triggerPanic() {
+      window.location.href = panicUrlInput.value || 'https://www.youtube.com/@Emulation12';
+    }
+    panicBtn.addEventListener('click', triggerPanic);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') triggerPanic();
+    });
+
+    // Settings toggle
+    settingsBtn.addEventListener('click', () => {
+      settingsPanel.classList.toggle('hidden');
+      gsap.fromTo(settingsPanel, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 });
+    });
+
+    // Handle proxy request
+    submitBtn.addEventListener('click', async () => {
+      const url = urlInput.value.trim();
+      errorDiv.classList.add('hidden');
+      contentFrame.classList.add('hidden');
+
+      if (!url || !url.match(/^https?:\/\/.+/)) {
+        errorDiv.textContent = 'Please enter a valid URL starting with http:// or https://';
+        errorDiv.classList.remove('hidden');
+        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
+        return;
+      }
+
+      try {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        const response = await fetch(proxyUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}. Try another URL or use a custom proxy server.`);
+        }
+        const data = await response.text();
+        contentFrame.srcdoc = data;
+        contentFrame.classList.remove('hidden');
+        addTab(url, data);
+        gsap.from(contentFrame, { opacity: 0, scale: 0.95, duration: 0.5 });
+      } catch (err) {
+        errorDiv.textContent = `Error: ${err.message}`;
+        errorDiv.classList.remove('hidden');
+        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
+      }
+    });
+
+    // Keyboard shortcuts
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitBtn.click();
+    });
+  </script>
+</body>
+</html>
