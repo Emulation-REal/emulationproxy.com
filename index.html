@@ -12,6 +12,9 @@
   <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.4/dist/sweetalert2.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.5/babel.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     body {
@@ -19,6 +22,7 @@
       overflow-x: hidden;
       color: #e5e7eb;
       margin: 0;
+      font-family: 'Inter', sans-serif;
     }
     #particles-js {
       position: fixed;
@@ -36,6 +40,7 @@
       height: 100%;
       z-index: -9;
       opacity: 0.6;
+      transition: opacity 0.5s ease;
     }
     .control-panel {
       background: rgba(15, 15, 15, 0.95);
@@ -49,7 +54,10 @@
       padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
+      align-items: center;
       z-index: 20;
+      position: sticky;
+      top: 0;
     }
     .tab {
       background: rgba(40, 40, 40, 0.85);
@@ -59,6 +67,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      cursor: pointer;
     }
     .tab:hover {
       background: rgba(75, 108, 183, 0.6);
@@ -68,20 +77,6 @@
       background: linear-gradient(145deg, #4b6cb7, #182848);
       box-shadow: 0 0 15px rgba(75, 108, 183, 0.8);
     }
-    .tab.loading::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(75, 108, 183, 0.4), transparent);
-      animation: loadingGlow 1.2s infinite;
-    }
-    @keyframes loadingGlow {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
     .btn-cosmic {
       background: linear-gradient(145deg, #4b6cb7, #182848);
       box-shadow: 0 0 10px rgba(75, 108, 183, 0.8);
@@ -89,6 +84,8 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
     }
     .btn-cosmic:hover {
       box-shadow: 0 0 15px rgba(75, 108, 183, 1);
@@ -98,6 +95,8 @@
       background: rgba(255, 0, 0, 0.25);
       border: 1px solid #ff4d4d;
       animation: shake 0.3s ease;
+      border-radius: 8px;
+      padding: 1rem;
     }
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -109,6 +108,7 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(75, 108, 183, 0.5);
       animation: slideIn 0.5s ease-out;
+      padding: 1rem;
     }
     @keyframes slideIn {
       from { transform: translateY(-20px); opacity: 0; }
@@ -158,6 +158,7 @@
     }
     .card {
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 12px;
     }
     .card:hover {
       transform: translateY(-5px);
@@ -190,825 +191,864 @@
       font-size: 1.5rem;
       margin-top: 1rem;
     }
+    @media (max-width: 640px) {
+      .top-bar {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .control-panel {
+        padding: 1rem;
+      }
+      .new-tab-content .grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
-<body class="text-gray-200 min-h-screen flex flex-col">
-  <div id="loading-screen">
-    <svg width="80" height="80" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="32" cy="32" r="30" fill="none" stroke="#4b6cb7" stroke-width="4" stroke-opacity="0.5"/>
-      <circle cx="32" cy="32" r="30" fill="none" stroke="#9f7aea" stroke-width="4" stroke-dasharray="94" stroke-dashoffset="47">
-        <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.5s" repeatCount="indefinite"/>
-      </circle>
-    </svg>
-    <div id="loading-text">Loading Emulation's Proxy...</div>
-  </div>
+<body>
+  <div id="root"></div>
   <div id="particles-js"></div>
-  <canvas id="three-canvas"></canvas>
-  <div class="top-bar fixed top-0 left-0 w-full z-20">
-    <div class="flex space-x-2">
-      <div id="tabs" class="flex space-x-2" role="tablist"></div>
-      <button id="newTabBtn" class="btn-cosmic text-white px-4 py-2 rounded-lg" aria-label="New Tab"><i class="fas fa-plus"></i> New Tab</button>
-    </div>
-    <div class="flex space-x-2">
-      <button id="settingsBtn" class="btn-cosmic text-white px-4 py-2 rounded-lg" aria-label="Settings"><i class="fas fa-cog"></i></button>
-      <button id="favoritesBtn" class="btn-cosmic text-white px-4 py-2 rounded-lg" aria-label="Favorites"><i class="fas fa-star"></i></button>
-      <button id="aboutBtn" class="btn-cosmic text-white px-4 py-2 rounded-lg" aria-label="About"><i class="fas fa-info-circle"></i></button>
-      <button id="particleViewBtn" class="btn-cosmic text-white px-4 py-2 rounded-lg" aria-label="3D Particle View"><i class="fas fa-cubes"></i> 3D View</button>
-    </div>
-  </div>
-  <div id="main-content" class="max-w-5xl mx-auto p-8 w-full mt-20 z-10">
-    <h1 class="text-5xl font-extrabold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMTUiIGZpbGw9IiMwMDAwMDAiLz48cGF0aCBkPSJNMTUgMzJBMTcgMTcgMCAwIDEgMzIgMTVBMjAgMjAgMCAwIDEgNDkgMzJBMTcgMTcgMCAwIDEgMzIgNDlBMjAgMjAgMCAwIDEgMTUgMzJaIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmI1MDAiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0xMCAzMkEyMiAyMiAwIDAgMSAzMiAxMEEyNSAyNSAwIDAgMSA1NCAzMkEyMiAyMiAwIDAgMSAzMiA1NEEyNSAyNSAwIDAgMSAxMCAzMloiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2Utb3BhY2l0eT0iMC41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiLz48L3N2Zz4=" class="w-12 h-12 mr-2">
-      Emulation's Proxy
-    </h1>
-    <div class="control-panel p-8 mb-8">
-      <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-        <input 
-          id="urlInput" 
-          type="text" 
-          placeholder="Enter URL (e.g., example.com)" 
-          class="flex-1 border border-gray-600 p-3 rounded-lg bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-200"
-          aria-label="Enter URL"
-        >
-        <button id="submitBtn" class="btn-cosmic text-white p-3 rounded-lg" aria-label="Go"><i class="fas fa-play"></i> Go</button>
-        <button id="fullscreenBtn" class="btn-cosmic text-white p-3 rounded-lg" aria-label="Full Screen"><i class="fas fa-expand"></i></button>
-        <button id="addFavoriteBtn" class="btn-cosmic text-white p-3 rounded-lg" aria-label="Add to Favorites"><i class="fas fa-star"></i></button>
-      </div>
-      <div id="error" class="error-message hidden text-center mt-4 p-2 rounded-lg"></div>
-      <div id="settingsPanel" class="toggle-panel hidden">
-        <h2 class="text-lg font-bold mb-4 text-blue-400"><i class="fas fa-cog mr-2"></i> Settings</h2>
-        <div class="space-y-4">
-          <label class="flex items-center">
-            <input id="cloakToggle" type="checkbox" class="mr-2">
-            <span><i class="fas fa-mask mr-2"></i> Enable Tab Cloaking</span>
-          </label>
-          <select id="cloakPreset" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-            <option value="">Custom</option>
-            <option value="google">Google</option>
-            <option value="wikipedia">Wikipedia</option>
-            <option value="youtube">YouTube</option>
-            <option value="classroom">Google Classroom</option>
-          </select>
-          <input id="cloakTitle" type="text" placeholder="Custom Page Title" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-          <input id="cloakFavicon" type="text" placeholder="Favicon URL" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-          <input id="panicUrl" type="text" placeholder="Panic Button URL" value="https://www.youtube.com/@Emulation12" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-          <button id="panicBtn" class="btn-cosmic text-white p-2 rounded-lg w-full"><i class="fas fa-ban mr-2"></i> Panic</button>
-          <button id="cloakBtn" class="btn-cosmic text-white p-2 rounded-lg w-full"><i class="fas fa-eye-slash mr-2"></i> About:Blank</button>
-          <select id="themeSelect" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-            <option value="dark">Dark</option>
-            <option value="starfield">Starfield</option>
-          </select>
-          <label class="block"><i class="fas fa-shapes mr-2"></i> Particle Effect</label>
-          <select id="particleType" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-            <option value="circle">Circle</option>
-            <option value="star">Star</option>
-            <option value="triangle">Triangle</option>
-            <option value="edge">Edge</option>
-          </select>
-          <label class="block"><i class="fas fa-tachometer-alt mr-2"></i> Particle Density</label>
-          <input id="particleDensity" type="range" min="50" max="300" value="120" class="w-full">
-          <label class="block"><i class="fas fa-tachometer-alt mr-2"></i> Particle Speed</label>
-          <input id="particleSpeed" type="range" min="2" max="15" value="4" class="w-full">
-          <label class="block"><i class="fas fa-palette mr-2"></i> Particle Color</label>
-          <input id="particleColor" type="color" value="#4b6cb7" class="w-full h-10 border border-gray-600 rounded-lg bg-gray-700">
-          <label class="block"><i class="fas fa-adjust mr-2"></i> Background Opacity</label>
-          <input id="bgOpacity" type="range" min="0.3" max="1" step="0.1" value="0.6" class="w-full">
-          <label class="block"><i class="fas fa-bolt mr-2"></i> Animation Intensity</label>
-          <input id="animIntensity" type="range" min="0.5" max="2" step="0.1" value="1" class="w-full">
-          <label class="block"><i class="fas fa-redo mr-2"></i> Proxy Retry Attempts</label>
-          <input id="proxyRetries" type="number" min="1" max="5" value="2" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-          <label class="flex items-center">
-            <input id="ambientSound" type="checkbox" class="mr-2">
-            <span><i class="fas fa-volume-up mr-2"></i> Enable Ambient Sound</span>
-          </label>
-          <label class="block"><i class="fas fa-server mr-2"></i> Proxy Server</label>
-          <select id="proxySelect" class="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200">
-            <option value="allorigins">AllOrigins</option>
-            <option value="corsproxy">CORS Proxy</option>
-          </select>
-        </div>
-      </div>
-      <div id="favoritesPanel" class="toggle-panel hidden">
-        <h2 class="text-lg font-bold mb-4 text-blue-400"><i class="fas fa-star mr-2"></i> Favorites</h2>
-        <div id="favoritesList" class="space-y-2"></div>
-      </div>
-      <div id="aboutPanel" class="toggle-panel hidden">
-        <h2 class="text-lg font-bold mb-4 text-blue-400"><i class="fas fa-info-circle mr-2"></i> About</h2>
-        <div class="space-y-4 text-gray-300">
-          <p><strong>Emulation's Proxy</strong> is a cosmic-themed proxy website for seamless web access.</p>
-          <ul class="list-disc pl-5">
-            <li><strong>Proxy Access</strong>: Load websites via proxies by entering a URL.</li>
-            <li><strong>Tab Cloaking</strong>: Disguise page title and favicon (Settings).</li>
-            <li><strong>Panic Button</strong>: Redirect to a safe URL via Panic or Escape key.</li>
-            <li><strong>Visuals</strong>: Enjoy Three.js animations and particle effects.</li>
-            <li><strong>3D View</strong>: Fly through a 3D particle field with WASD and mouse controls.</li>
-            <li><strong>Themes</strong>: Switch between Dark and Starfield themes.</li>
-            <li><strong>Ambient Sound</strong>: Toggle space-themed audio.</li>
-            <li><strong>Socials</strong>: <a href="https://www.youtube.com/@Emulation12" target="_blank" class="text-blue-400 hover:underline"><i class="fab fa-youtube mr-1"></i> YouTube (@Emulation12)</a>.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="relative rounded-lg overflow-hidden">
-      <div id="loader" class="loader">
-        <svg width="64" height="64" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="22" cy="22" r="20" fill="none" stroke="#4b6cb7" stroke-opacity=".3" stroke-width="2"/>
-          <circle cx="22" cy="22" r="20" fill="none" stroke="#9f7aea" stroke-dasharray="90" stroke-dashoffset="60" stroke-width="2">
-            <animateTransform attributeName="transform" type="rotate" from="0 22 22" to="360 22 22" dur="1s" repeatCount="indefinite"/>
-          </circle>
-        </svg>
-      </div>
-      <iframe id="contentFrame" class="w-full h-[700px] border-0"></iframe>
-    </div>
-    <div id="notification" class="notification hidden fixed bottom-4 right-4 p-4 text-white"></div>
-  </div>
+  <canvas id="three-canvas" ref="canvasRef"></canvas>
   <audio id="ambientAudio" preload="auto" loop>
     <source src="https://cdn.pixabay.com/audio/2025/03/12/12-ambient-calm-space-music-312291.mp3" type="audio/mpeg">
   </audio>
-  <script>
-    // Sanitize input
-    function sanitize(str) {
-      return DOMPurify.sanitize(str, { USE_PROFILES: { html: true } });
-    }
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
-    // Loading screen
-    const loadingScreen = document.getElementById('loading-screen');
-    window.addEventListener('load', () => {
-      setTimeout(() => loadingScreen.classList.add('hidden'), 1000);
-    });
-
-    // Particles.js
-    let particlesConfigCache = null;
-    function initParticles(theme, density = 120, speed = 4, type = 'circle', color = '#4b6cb7') {
-      if (particlesConfigCache?.theme === theme && particlesConfigCache.density === density && particlesConfigCache.speed === speed && particlesConfigCache.type === type && particlesConfigCache.color === color) return;
-      const baseConfig = {
-        particles: {
-          number: { value: density, density: { enable: true, value_area: 1000 } },
-          color: { value: color },
-          shape: { type },
-          opacity: { value: 0.6, random: true },
-          size: { value: 3, random: true },
-          line_linked: { enable: true, distance: 100, color, opacity: 0.4, width: 1 },
-          move: { enable: true, speed, direction: 'none', random: true }
-        },
-        interactivity: {
-          detect_on: 'canvas',
-          events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' } },
-          modes: { grab: { distance: 150, line_linked: { opacity: 0.7 } }, push: { particles_nb: 4 } }
-        },
-        retina_detect: true
-      };
-      const configs = {
-        dark: baseConfig,
-        starfield: {
-          ...baseConfig,
-          particles: { ...baseConfig.particles, opacity: { value: 0.8 }, size: { value: 2 }, line_linked: { enable: false }, move: { direction: 'random' } }
-        }
-      };
-      particlesJS('particles-js', configs[theme] || baseConfig);
-      particlesConfigCache = { theme, density, speed, type, color };
-    }
-
-    // Three.js setup
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.position.z = 50;
-
-    // Nebula background
-    const nebulaGeometry = new THREE.SphereGeometry(100, 16, 16);
-    const nebulaShader = {
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        varying vec2 vUv;
-        uniform float time;
-        void main() {
-          vec2 uv = vUv * 2.0 - 1.0;
-          float d = length(uv);
-          vec3 color = mix(vec3(0.29, 0.42, 0.71), vec3(0.62, 0.47, 0.92), sin(d * 3.0 + time) * 0.5 + 0.5);
-          gl_FragColor = vec4(color, 0.3);
-        }
-      `,
-      uniforms: { time: { value: 0 } }
+    // Custom hooks
+    const useLocalStorage = (key, initialValue) => {
+      const [value, setValue] = useState(() => {
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : initialValue;
+      });
+      useEffect(() => {
+        localStorage.setItem(key, JSON.stringify(value));
+      }, [key, value]);
+      return [value, setValue];
     };
-    const nebulaMaterial = new THREE.ShaderMaterial({ ...nebulaShader, side: THREE.BackSide, transparent: true });
-    const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
-    scene.add(nebula);
 
-    // 3D Star-like particle field
-    const particleCount = 5000;
-    const starGeometry = new THREE.BufferGeometry();
-    const starPositions = new Float32Array(particleCount * 3);
-    const starVelocities = new Float32Array(particleCount * 3);
-    const starColors = new Float32Array(particleCount * 3);
-    const starSizes = new Float32Array(particleCount);
-    const colors = [0x4b6cb7, 0x9f7aea, 0xff6b6b, 0x00cc99, 0xffffff];
-    for (let i = 0; i < particleCount; i++) {
-      starPositions[i * 3] = (Math.random() - 0.5) * 200;
-      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 200;
-      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 200;
-      starVelocities[i * 3] = (Math.random() - 0.5) * 0.1;
-      starVelocities[i * 3 + 1] = (Math.random() - 0.5) * 0.1;
-      starVelocities[i * 3 + 2] = (Math.random() - 0.5) * 0.1;
-      const color = new THREE.Color(colors[Math.floor(Math.random() * colors.length)]);
-      starColors[i * 3] = color.r;
-      starColors[i * 3 + 1] = color.g;
-      starColors[i * 3 + 2] = color.b;
-      starSizes[i] = 2 + Math.random() * 3;
-    }
-    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
-    starGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
-    const starShader = {
-      vertexShader: `
-        attribute float size;
-        varying vec3 vColor;
-        void main() {
-          vColor = color;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = size;
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vColor;
-        uniform float time;
-        void main() {
-          float glow = 0.8 + 0.2 * sin(time * 2.0);
-          gl_FragColor = vec4(vColor, glow);
-        }
-      `,
-      uniforms: { time: { value: 0 } }
-    };
-    const starMaterial = new THREE.ShaderMaterial({ ...starShader, transparent: true, vertexColors: true });
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    let particleViewActive = false;
+    const useThree = (canvasRef, bgOpacity) => {
+      const sceneRef = useRef(new THREE.Scene());
+      const cameraRef = useRef(new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000));
+      const rendererRef = useRef(null);
+      const starsRef = useRef(null);
+      const [isParticleView, setIsParticleView] = useState(false);
 
-    // Fly controls
-    const moveSpeed = 0.5;
-    const lookSpeed = 0.002;
-    let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
-    let yaw = 0, pitch = 0;
-    document.addEventListener('keydown', (e) => {
-      if (!particleViewActive) return;
-      switch (e.key.toLowerCase()) {
-        case 'w': moveForward = true; break;
-        case 's': moveBackward = true; break;
-        case 'a': moveLeft = true; break;
-        case 'd': moveRight = true; break;
-        case 'r': moveUp = true; break;
-        case 'f': moveDown = true; break;
-        case 'escape': particleViewBtn.click(); break;
-      }
-    });
-    document.addEventListener('keyup', (e) => {
-      if (!particleViewActive) return;
-      switch (e.key.toLowerCase()) {
-        case 'w': moveForward = false; break;
-        case 's': moveBackward = false; break;
-        case 'a': moveLeft = false; break;
-        case 'd': moveRight = false; break;
-        case 'r': moveUp = false; break;
-        case 'f': moveDown = false; break;
-      }
-    });
-    let mouseX = 0, mouseY = 0;
-    document.addEventListener('mousemove', (e) => {
-      if (!particleViewActive) return;
-      mouseX = e.movementX * lookSpeed;
-      mouseY = e.movementY * lookSpeed;
-    });
+      useEffect(() => {
+        // Ensure canvas exists before initializing renderer
+        if (!canvasRef.current) return;
 
-    // Pointer Lock
-    function lockPointer() {
-      const canvas = document.getElementById('three-canvas');
-      canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
-      canvas.requestPointerLock?.();
-    }
-    document.addEventListener('pointerlockchange', () => {
-      particleViewActive = document.pointerLockElement === document.getElementById('three-canvas');
-      if (!particleViewActive) {
-        scene.remove(stars);
-        document.querySelector('#three-canvas').style.opacity = parseFloat(bgOpacity.value);
-        mainContent.classList.remove('hidden');
-        document.querySelector('.top-bar').classList.remove('hidden');
-        contentFrame.classList.remove('hidden');
-        particleViewBtn.innerHTML = '<i class="fas fa-cubes"></i> 3D View';
-        const activeTab = tabs.find(t => t.id === tabsDiv.dataset.active);
-        contentFrame.srcdoc = activeTab ? activeTab.content : '';
-      }
-    });
-    document.addEventListener('mozpointerlockchange', () => {
-      particleViewActive = document.mozPointerLockElement === document.getElementById('three-canvas');
-      if (!particleViewActive) {
-        scene.remove(stars);
-        document.querySelector('#three-canvas').style.opacity = parseFloat(bgOpacity.value);
-        mainContent.classList.remove('hidden');
-        document.querySelector('.top-bar').classList.remove('hidden');
-        contentFrame.classList.remove('hidden');
-        particleViewBtn.innerHTML = '<i class="fas fa-cubes"></i> 3D View';
-        const activeTab = tabs.find(t => t.id === tabsDiv.dataset.active);
-        contentFrame.srcdoc = activeTab ? activeTab.content : '';
-      }
-    });
+        const scene = sceneRef.current;
+        const camera = cameraRef.current;
+        rendererRef.current = new THREE.WebGLRenderer({ canvas: canvasRef.current, alpha: true });
+        const renderer = rendererRef.current;
 
-    // Animation loop
-    function animateThree() {
-      requestAnimationFrame(animateThree);
-      nebulaShader.uniforms.time.value += 0.01;
-      starShader.uniforms.time.value += 0.01;
-      if (particleViewActive) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.z = 50;
+
+        // Enhanced Nebula
+        const nebulaGeometry = new THREE.SphereGeometry(100, 32, 32);
+        const nebulaShader = {
+          vertexShader: `
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            varying vec2 vUv;
+            uniform float time;
+            float noise(vec2 p) {
+              return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+            }
+            void main() {
+              vec2 uv = vUv * 2.0 - 1.0;
+              float d = length(uv);
+              float n = noise(uv * 3.0 + time);
+              vec3 color = mix(vec3(0.29, 0.42, 0.71), vec3(0.62, 0.47, 0.92), sin(d * 3.0 + time + n) * 0.5 + 0.5);
+              gl_FragColor = vec4(color, 0.3);
+            }
+          `,
+          uniforms: { time: { value: 0 } }
+        };
+        const nebulaMaterial = new THREE.ShaderMaterial({ ...nebulaShader, side: THREE.BackSide, transparent: true });
+        const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
+        scene.add(nebula);
+
+        // Enhanced Particle Field
+        const particleCount = 10000;
+        const starGeometry = new THREE.BufferGeometry();
+        const starPositions = new Float32Array(particleCount * 3);
+        const starVelocities = new Float32Array(particleCount * 3);
+        const starColors = new Float32Array(particleCount * 3);
+        const starSizes = new Float32Array(particleCount);
+        const colors = [0x4b6cb7, 0x9f7aea, 0xff6b6b, 0x00cc99, 0xffffff];
         for (let i = 0; i < particleCount; i++) {
-          starPositions[i * 3] += starVelocities[i * 3];
-          starPositions[i * 3 + 1] += starVelocities[i * 3 + 1];
-          starPositions[i * 3 + 2] += starVelocities[i * 3 + 2];
-          if (Math.abs(starPositions[i * 3]) > 100) starPositions[i * 3] = -Math.sign(starPositions[i * 3]) * 100;
-          if (Math.abs(starPositions[i * 3 + 1]) > 100) starPositions[i * 3 + 1] = -Math.sign(starPositions[i * 3 + 1]) * 100;
-          if (Math.abs(starPositions[i * 3 + 2]) > 100) starPositions[i * 3 + 2] = -Math.sign(starPositions[i * 3 + 2]) * 100;
+          starPositions[i * 3] = (Math.random() - 0.5) * 300;
+          starPositions[i * 3 + 1] = (Math.random() - 0.5) * 300;
+          starPositions[i * 3 + 2] = (Math.random() - 0.5) * 300;
+          starVelocities[i * 3] = (Math.random() - 0.5) * 0.05;
+          starVelocities[i * 3 + 1] = (Math.random() - 0.5) * 0.05;
+          starVelocities[i * 3 + 2] = (Math.random() - 0.5) * 0.05;
+          const color = new THREE.Color(colors[Math.floor(Math.random() * colors.length)]);
+          starColors[i * 3] = color.r;
+          starColors[i * 3 + 1] = color.g;
+          starColors[i * 3 + 2] = color.b;
+          starSizes[i] = 1 + Math.random() * 4;
         }
-        starGeometry.attributes.position.needsUpdate = true;
-        yaw -= mouseX;
-        pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch - mouseY));
-        camera.rotation.set(pitch, yaw, 0);
-        const direction = new THREE.Vector3();
-        camera.getWorldDirection(direction);
-        if (moveForward) camera.position.addScaledVector(direction, moveSpeed);
-        if (moveBackward) camera.position.addScaledVector(direction, -moveSpeed);
-        if (moveLeft) camera.position.addScaledVector(direction.cross(new THREE.Vector3(0, 1, 0)), -moveSpeed);
-        if (moveRight) camera.position.addScaledVector(direction.cross(new THREE.Vector3(0, 1, 0)), moveSpeed);
-        if (moveUp) camera.position.y += moveSpeed;
-        if (moveDown) camera.position.y -= moveSpeed;
-      }
-      renderer.render(scene, camera);
-    }
-    animateThree();
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+        starGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+        const starShader = {
+          vertexShader: `
+            attribute float size;
+            varying vec3 vColor;
+            void main() {
+              vColor = color;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              gl_PointSize = size * (300.0 / length(position));
+            }
+          `,
+          fragmentShader: `
+            varying vec3 vColor;
+            uniform float time;
+            void main() {
+              float glow = 0.8 + 0.2 * sin(time * 4.0);
+              gl_FragColor = vec4(vColor, glow * 0.8);
+            }
+          `,
+          uniforms: { time: { value: 0 } }
+        };
+        const starMaterial = new THREE.ShaderMaterial({ ...starShader, transparent: true, vertexColors: true });
+        starsRef.current = new THREE.Points(starGeometry, starMaterial);
 
-    // Resize handler
-    window.addEventListener('resize', () => {
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-    });
+        // Fly controls
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
+        let yaw = 0, pitch = 0;
+        const moveSpeed = 0.8;
+        const lookSpeed = 0.003;
 
-    // DOM elements
-    const urlInput = document.getElementById('urlInput');
-    const submitBtn = document.getElementById('submitBtn');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const addFavoriteBtn = document.getElementById('addFavoriteBtn');
-    const cloakBtn = document.getElementById('cloakBtn');
-    const panicBtn = document.getElementById('panicBtn');
-    const errorDiv = document.getElementById('error');
-    const contentFrame = document.getElementById('contentFrame');
-    const tabsDiv = document.getElementById('tabs');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const favoritesPanel = document.getElementById('favoritesPanel');
-    const aboutPanel = document.getElementById('aboutPanel');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const favoritesBtn = document.getElementById('favoritesBtn');
-    const aboutBtn = document.getElementById('aboutBtn');
-    const particleViewBtn = document.getElementById('particleViewBtn');
-    const newTabBtn = document.getElementById('newTabBtn');
-    const cloakToggle = document.getElementById('cloakToggle');
-    const cloakTitle = document.getElementById('cloakTitle');
-    const cloakFavicon = document.getElementById('cloakFavicon');
-    const cloakPreset = document.getElementById('cloakPreset');
-    const panicUrlInput = document.getElementById('panicUrl');
-    const themeSelect = document.getElementById('themeSelect');
-    const particleDensity = document.getElementById('particleDensity');
-    const particleSpeed = document.getElementById('particleSpeed');
-    const particleType = document.getElementById('particleType');
-    const particleColor = document.getElementById('particleColor');
-    const bgOpacity = document.getElementById('bgOpacity');
-    const animIntensity = document.getElementById('animIntensity');
-    const proxyRetries = document.getElementById('proxyRetries');
-    const proxySelect = document.getElementById('proxySelect');
-    const notification = document.getElementById('notification');
-    const ambientAudio = document.getElementById('ambientAudio');
-    const loader = document.getElementById('loader');
-    const mainContent = document.getElementById('main-content');
-    let tabs = JSON.parse(localStorage.getItem('tabs')) || [
-      { id: 'new-tab', url: null, content: `
-        <div class="new-tab-content">
-          <h2 class="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 typing-text">Welcome to Emulation's Proxy</h2>
-          <p class="text-lg mb-6 text-gray-300">Browse securely or fly through a 3D particle universe.</p>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('urlInput').focus()">
-              <i class="fas fa-globe text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">Browse</h3>
-              <p class="text-gray-400">Access websites via proxy.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('favoritesBtn').click()">
-              <i class="fas fa-star text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">Favorites</h3>
-              <p class="text-gray-400">Save and revisit sites.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('settingsBtn').click()">
-              <i class="fas fa-cog text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">Settings</h3>
-              <p class="text-gray-400">Customize themes and particles.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('particleViewBtn').click()">
-              <i class="fas fa-cubes text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">3D View</h3>
-              <p class="text-gray-400">Explore 3D particle field.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('aboutBtn').click()">
-              <i class="fas fa-info-circle text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">About</h3>
-              <p class="text-gray-400">Learn about Emulation's Proxy.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('panicBtn').click()">
-              <i class="fas fa-ban text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">Panic</h3>
-              <p class="text-gray-400">Redirect to a safe URL.</p>
-            </div>
-          </div>
-        </div>`, label: 'New Tab', type: 'new-tab', icon: 'fas fa-home' }
-    ];
-    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        const handleKeyDown = (e) => {
+          if (!isParticleView) return;
+          switch (e.key.toLowerCase()) {
+            case 'w': moveForward = true; break;
+            case 's': moveBackward = true; break;
+            case 'a': moveLeft = true; break;
+            case 'd': moveRight = true; break;
+            case 'r': moveUp = true; break;
+            case 'f': moveDown = true; break;
+            case 'escape': setIsParticleView(false); break;
+          }
+        };
+        const handleKeyUp = (e) => {
+          if (!isParticleView) return;
+          switch (e.key.toLowerCase()) {
+            case 'w': moveForward = false; break;
+            case 's': moveBackward = false; break;
+            case 'a': moveLeft = false; break;
+            case 'd': moveRight = false; break;
+            case 'r': moveUp = false; break;
+            case 'f': moveDown = false; break;
+          }
+        };
+        let mouseX = 0, mouseY = 0;
+        const handleMouseMove = (e) => {
+          if (!isParticleView) return;
+          mouseX = e.movementX * lookSpeed;
+          mouseY = e.movementY * lookSpeed;
+        };
 
-    // Theme management
-    function applyTheme(theme) {
-      document.body.style.background = theme === 'dark' ? 'linear-gradient(180deg, #0a0a0a, #1a1a1a)' : 'linear-gradient(180deg, #000000, #0a0a1a)';
-      document.querySelector('#three-canvas').style.opacity = parseFloat(bgOpacity.value);
-      gsap.to('.btn-cosmic, .control-panel, .tab.active', { animationDuration: parseFloat(animIntensity.value) * 1.5, duration: 0.3 });
-      initParticles(theme, parseInt(particleDensity.value), parseInt(particleSpeed.value), particleType.value, particleColor.value);
-    }
-    themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
-    particleDensity.addEventListener('input', () => applyTheme(themeSelect.value));
-    particleSpeed.addEventListener('input', () => applyTheme(themeSelect.value));
-    particleType.addEventListener('change', () => applyTheme(themeSelect.value));
-    particleColor.addEventListener('input', () => applyTheme(themeSelect.value));
-    bgOpacity.addEventListener('input', () => applyTheme(themeSelect.value));
-    animIntensity.addEventListener('input', () => applyTheme(themeSelect.value));
-    applyTheme('dark');
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+        document.addEventListener('mousemove', handleMouseMove);
 
-    // Ambient sound
-    let audioLoaded = false;
-    document.getElementById('ambientSound').addEventListener('change', (e) => {
-      if (!audioLoaded) {
-        ambientAudio.load();
-        audioLoaded = true;
-      }
-      if (e.target.checked) {
-        ambientAudio.play().catch(err => {
-          errorDiv.textContent = `Audio error: ${err.message}`;
-          errorDiv.classList.remove('hidden');
-          gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
-          document.getElementById('ambientSound').checked = false;
-        });
-      } else {
-        ambientAudio.pause();
-      }
-    });
-    document.addEventListener('click', () => {
-      if (document.getElementById('ambientSound').checked && !audioLoaded) {
-        ambientAudio.load();
-        audioLoaded = true;
-        ambientAudio.play().catch(() => {});
-      }
-    }, { once: true });
+        // Animation loop
+        const animate = () => {
+          if (!rendererRef.current) return; // Ensure renderer exists
+          requestAnimationFrame(animate);
+          nebulaShader.uniforms.time.value += 0.02;
+          starShader.uniforms.time.value += 0.02;
+          if (isParticleView && starsRef.current) {
+            const starPositions = starsRef.current.geometry.attributes.position.array;
+            for (let i = 0; i < particleCount; i++) {
+              starPositions[i * 3] += starVelocities[i * 3];
+              starPositions[i * 3 + 1] += starVelocities[i * 3 + 1];
+              starPositions[i * 3 + 2] += starVelocities[i * 3 + 2];
+              if (Math.abs(starPositions[i * 3]) > 150) starPositions[i * 3] = -Math.sign(starPositions[i * 3]) * 150;
+              if (Math.abs(starPositions[i * 3 + 1]) > 150) starPositions[i * 3 + 1] = -Math.sign(starPositions[i * 3 + 1]) * 150;
+              if (Math.abs(starPositions[i * 3 + 2]) > 150) starPositions[i * 3 + 2] = -Math.sign(starPositions[i * 3 + 2]) * 150;
+            }
+            starsRef.current.geometry.attributes.position.needsUpdate = true;
+            yaw -= mouseX;
+            pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch - mouseY));
+            camera.rotation.set(pitch, yaw, 0);
+            const direction = new THREE.Vector3();
+            camera.getWorldDirection(direction);
+            if (moveForward) camera.position.addScaledVector(direction, moveSpeed);
+            if (moveBackward) camera.position.addScaledVector(direction, -moveSpeed);
+            if (moveLeft) camera.position.addScaledVector(direction.cross(new THREE.Vector3(0, 1, 0)), -moveSpeed);
+            if (moveRight) camera.position.addScaledVector(direction.cross(new THREE.Vector3(0, 1, 0)), moveSpeed);
+            if (moveUp) camera.position.y += moveSpeed;
+            if (moveDown) camera.position.y -= moveSpeed;
+          }
+          renderer.render(scene, camera);
+        };
+        animate();
 
-    // Tab cloaking
-    const cloakPresets = {
-      google: { title: 'Google', favicon: 'https://www.google.com/favicon.ico' },
-      wikipedia: { title: 'Wikipedia', favicon: 'https://en.wikipedia.org/favicon.ico' },
-      youtube: { title: 'YouTube', favicon: 'https://www.youtube.com/favicon.ico' },
-      classroom: { title: 'Google Classroom', favicon: 'https://classroom.google.com/favicon.ico' }
+        // Resize handler
+        const handleResize = () => {
+          if (!rendererRef.current || !canvasRef.current) return;
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+        };
+        window.addEventListener('resize', handleResize);
+
+        // Cleanup
+        return () => {
+          document.removeEventListener('keydown', handleKeyDown);
+          document.removeEventListener('keyup', handleKeyUp);
+          document.removeEventListener('mousemove', handleMouseMove);
+          window.removeEventListener('resize', handleResize);
+          if (rendererRef.current) {
+            rendererRef.current.dispose();
+          }
+        };
+      }, [isParticleView]);
+
+      useEffect(() => {
+        if (!canvasRef.current || !rendererRef.current) return;
+        if (isParticleView && starsRef.current) {
+          sceneRef.current.add(starsRef.current);
+          canvasRef.current.requestPointerLock();
+          rendererRef.current.domElement.style.opacity = 1;
+        } else {
+          if (starsRef.current) {
+            sceneRef.current.remove(starsRef.current);
+          }
+          document.exitPointerLock?.();
+          rendererRef.current.domElement.style.opacity = bgOpacity;
+        }
+      }, [isParticleView, bgOpacity]);
+
+      return { isParticleView, setIsParticleView };
     };
-    function updateCloaking() {
-      if (cloakToggle.checked) {
-        const preset = cloakPreset.value;
-        if (preset && cloakPresets[preset]) {
-          document.getElementById('pageTitle').textContent = cloakPresets[preset].title;
-          document.getElementById('favicon').href = cloakPresets[preset].favicon;
-          cloakTitle.value = cloakPresets[preset].title;
-          cloakFavicon.value = cloakPresets[preset].favicon;
-        } else {
-          document.getElementById('pageTitle').textContent = cloakTitle.value || "Emulation's Proxy";
-          document.getElementById('favicon').href = cloakFavicon.value || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMTUiIGZpbGw9IiMwMDAwMDAiLz48cGF0aCBkPSJNMTUgMzJBMTcgMTcgMCAwIDEgMzIgMTVBMjAgMjAgMCAwIDEgNDkgMzJBMTcgMTcgMCAwIDEgMzIgNDlBMjAgMjAgMCAwIDEgMTUgMzJaIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmI1MDAiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0xMCAzMkEyMiAyMiAwIDAgMSAzMiAxMEEyNSAyNSAwIDAgMSA1NCAzMkEyMiAyMiAwIDAgMSAzMiA1NEEyNSAyNSAwIDAgMSAxMCAzMloiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2Utb3BhY2l0eT0iMC41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiLz48L3N2Zz4=';
+
+    // Main App Component
+    const App = () => {
+      const [tabs, setTabs] = useLocalStorage('tabs', [
+        {
+          id: 'new-tab',
+          url: null,
+          content: `
+            <div class="new-tab-content">
+              <h2 class="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 typing-text">Welcome to Emulation's Proxy</h2>
+              <p class="text-lg mb-6 text-gray-300">Browse securely or fly through a 3D particle universe.</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('urlInput').focus()">
+                  <i class="fas fa-globe text-3xl text-blue-400 mb-3"></i>
+                  <h3 class="text-xl font-semibold">Browse</h3>
+                  <p class="text-gray-400">Access websites via proxy.</p>
+                </div>
+                <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('favoritesBtn').click()">
+                  <i class="fas fa-star text-3xl text-blue-400 mb-3"></i>
+                  <h3 class="text-xl font-semibold">Favorites</h3>
+                  <p class="text-gray-400">Save and revisit sites.</p>
+                </div>
+                <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('settingsBtn').click()">
+                  <i class="fas fa-cog text-3xl text-blue-400 mb-3"></i>
+                  <h3 class="text-xl font-semibold">Settings</h3>
+                  <p class="text-gray-400">Customize themes and particles.</p>
+                </div>
+                <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('particleViewBtn').click()">
+                  <i class="fas fa-cubes text-3xl text-blue-400 mb-3"></i>
+                  <h3 class="text-xl font-semibold">3D View</h3>
+                  <p class="text-gray-400">Explore 3D particle field.</p>
+                </div>
+                <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('aboutBtn').click()">
+                  <i class="fas fa-info-circle text-3xl text-blue-400 mb-3"></i>
+                  <h3 class="text-xl font-semibold">About</h3>
+                  <p class="text-gray-400">Learn about Emulation's Proxy.</p>
+                </div>
+                <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('panicBtn').click()">
+                  <i class="fas fa-ban text-3xl text-blue-400 mb-3"></i>
+                  <h3 class="text-xl font-semibold">Panic</h3>
+                  <p class="text-gray-400">Redirect to a safe URL.</p>
+                </div>
+              </div>
+            </div>`,
+          label: 'New Tab',
+          type: 'new-tab',
+          icon: 'fas fa-home'
         }
-      } else {
-        document.getElementById('pageTitle').textContent = "Emulation's Proxy";
-        document.getElementById('favicon').href = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMTUiIGZpbGw9IiMwMDAwMDAiLz48cGF0aCBkPSJNMTUgMzJBMTcgMTcgMCAwIDEgMzIgMTVBMjAgMjAgMCAwIDEgNDkgMzJBMTcgMTcgMCAwIDEgMzIgNDlBMjAgMjAgMCAwIDEgMTUgMzJaIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmI1MDAiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0xMCAzMkEyMiAyMiAwIDAgMSAzMiAxMEEyNSAyNSAwIDAgMSA1NCAzMkEyMiAyMiAwIDAgMSAzMiA1NEEyNSAyNSAwIDAgMSAxMCAzMloiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2Utb3BhY2l0eT0iMC41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiLz48L3N2Zz4=';
-      }
-    }
-    cloakToggle.addEventListener('change', updateCloaking);
-    cloakTitle.addEventListener('input', () => { cloakPreset.value = ''; updateCloaking(); });
-    cloakFavicon.addEventListener('input', () => { cloakPreset.value = ''; updateCloaking(); });
-    cloakPreset.addEventListener('change', updateCloaking);
-
-    // Toggle panels
-    function togglePanel(panel) {
-      const isHidden = panel.classList.contains('hidden');
-      [settingsPanel, favoritesPanel, aboutPanel].forEach(p => p.classList.add('hidden'));
-      if (isHidden) {
-        panel.classList.remove('hidden');
-        gsap.fromTo(panel, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.3 });
-      }
-    }
-    settingsBtn.addEventListener('click', () => togglePanel(settingsPanel));
-    favoritesBtn.addEventListener('click', () => togglePanel(favoritesPanel));
-    aboutBtn.addEventListener('click', () => togglePanel(aboutPanel));
-
-    // 3D Particle view toggle
-    particleViewBtn.addEventListener('click', () => {
-      particleViewActive = !particleViewActive;
-      if (particleViewActive) {
-        scene.add(stars);
-        document.querySelector('#three-canvas').style.opacity = 1;
-        mainContent.classList.add('hidden');
-        document.querySelector('.top-bar').classList.add('hidden');
-        lockPointer();
-        particleViewBtn.innerHTML = '<i class="fas fa-times"></i> Exit 3D View';
-        Swal.fire({ title: '3D Star Field', text: 'Use WASD, R/F, mouse, Esc to exit.', icon: 'info', timer: 2000, showConfirmButton: false, background: '#1a1a1a', color: '#fff' });
-      } else {
-        scene.remove(stars);
-        document.exitPointerLock?.();
-        document.querySelector('#three-canvas').style.opacity = parseFloat(bgOpacity.value);
-        mainContent.classList.remove('hidden');
-        document.querySelector('.top-bar').classList.remove('hidden');
-        contentFrame.classList.remove('hidden');
-        particleViewBtn.innerHTML = '<i class="fas fa-cubes"></i> 3D View';
-        const activeTab = tabs.find(t => t.id === tabsDiv.dataset.active);
-        contentFrame.srcdoc = activeTab ? activeTab.content : '';
-      }
-    });
-
-    // Favorites management
-    function renderFavorites() {
-      const favoritesList = document.getElementById('favoritesList');
-      favoritesList.innerHTML = '';
-      favorites.forEach((fav, index) => {
-        const div = document.createElement('div');
-        div.className = 'flex items-center justify-between bg-gray-800 p-2 rounded-lg';
-        div.innerHTML = `
-          <div class="flex items-center">
-            <img src="https://www.google.com/s2/favicons?domain=${sanitize(fav.url)}" class="w-5 h-5 mr-2" alt="Favicon">
-            <a href="#" class="text-blue-400 hover:underline" data-url="${sanitize(fav.url)}">${sanitize(fav.label)}</a>
-          </div>
-          <button class="text-red-400" data-index="${index}"><i class="fas fa-trash"></i></button>
-        `;
-        div.querySelector('a').addEventListener('click', (e) => {
-          e.preventDefault();
-          urlInput.value = fav.url;
-          submitBtn.click();
-        });
-        div.querySelector('button').addEventListener('click', () => {
-          favorites.splice(index, 1);
-          localStorage.setItem('favorites', JSON.stringify(favorites));
-          renderFavorites();
-        });
-        favoritesList.appendChild(div);
+      ]);
+      const [favorites, setFavorites] = useLocalStorage('favorites', []);
+      const [activeTab, setActiveTab] = useState('new-tab');
+      const [url, setUrl] = useState('');
+      const [error, setError] = useState('');
+      const [notification, setNotification] = useState('');
+      const [isLoading, setIsLoading] = useState(false);
+      const [settings, setSettings] = useLocalStorage('settings', {
+        theme: 'dark',
+        particleDensity: 120,
+        particleSpeed: 4,
+        particleType: 'circle',
+        particleColor: '#4b6cb7',
+        bgOpacity: 0.6,
+        animIntensity: 1,
+        proxyRetries: 2,
+        proxy: 'allorigins',
+        cloakEnabled: false,
+        cloakPreset: '',
+        cloakTitle: '',
+        cloakFavicon: '',
+        panicUrl: 'https://www.youtube.com/@Emulation12',
+        ambientSound: false
       });
-    }
-    addFavoriteBtn.addEventListener('click', () => {
-      const url = urlInput.value.trim();
-      if (url && !favorites.some(f => f.url === url)) {
-        const hostname = new URL(url.match(/^https?:\/\//) ? url : 'https://' + url).hostname;
-        favorites.push({ url, label: hostname });
-        localStorage.setItem('favorites', JSON.stringify(favorites));
-        renderFavorites();
-        Swal.fire({ title: 'Added', text: `${sanitize(hostname)} saved`, icon: 'success', timer: 1500, showConfirmButton: false, background: '#1a1a1a', color: '#fff' });
-      }
-    });
-    renderFavorites();
+      const [activePanel, setActivePanel] = useState(null);
+      const canvasRef = useRef(null);
+      const { isParticleView, setIsParticleView } = useThree(canvasRef, settings.bgOpacity);
+      const iframeRef = useRef(null);
+      const audioRef = useRef(null);
+      const [audioLoaded, setAudioLoaded] = useState(false);
 
-    // Tab management
-    function addTab(id, url, content, label, type = 'proxy', icon = 'fas fa-globe') {
-      tabs = tabs.filter(t => t.url !== url || t.type !== 'proxy');
-      tabs.push({ id, url, content, label, type, icon });
-      localStorage.setItem('tabs', JSON.stringify(tabs));
-      renderTabs();
-    }
-    function renderTabs() {
-      tabsDiv.innerHTML = '';
-      tabs.forEach(tab => {
-        const tabBtn = document.createElement('button');
-        tabBtn.className = `tab text-gray-200 px-4 py-2 rounded-lg ${tab.id === tabsDiv.dataset.active ? 'active' : ''}`;
-        tabBtn.setAttribute('role', 'tab');
-        tabBtn.setAttribute('aria-selected', tab.id === tabsDiv.dataset.active);
-        tabBtn.innerHTML = tab.icon.startsWith('<img') ? `${tab.icon}${sanitize(tab.label)}` : `<i class="${tab.icon} mr-2"></i>${sanitize(tab.label)}`;
-        const closeBtn = document.createElement('span');
-        closeBtn.textContent = ' ×';
-        closeBtn.className = 'ml-2 text-red-400 cursor-pointer';
-        closeBtn.onclick = (e) => {
-          e.stopPropagation();
-          tabs = tabs.filter(t => t.id !== tab.id);
-          localStorage.setItem('tabs', JSON.stringify(tabs));
-          if (tab.id === tabsDiv.dataset.active) {
-            tabsDiv.dataset.active = 'new-tab';
-            contentFrame.srcdoc = tabs.find(t => t.id === 'new-tab').content;
-            settingsPanel.classList.add('hidden');
-            favoritesPanel.classList.add('hidden');
-            aboutPanel.classList.add('hidden');
-          }
-          renderTabs();
+      // Initialize Particles.js
+      useEffect(() => {
+        const initParticles = (theme, density, speed, type, color) => {
+          const baseConfig = {
+            particles: {
+              number: { value: density, density: { enable: true, value_area: 1000 } },
+              color: { value: color },
+              shape: { type },
+              opacity: { value: 0.6, random: true },
+              size: { value: 3, random: true },
+              line_linked: { enable: true, distance: 100, color, opacity: 0.4, width: 1 },
+              move: { enable: true, speed, direction: 'none', random: true }
+            },
+            interactivity: {
+              detect_on: 'canvas',
+              events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' } },
+              modes: { grab: { distance: 150, line_linked: { opacity: 0.7 } }, push: { particles_nb: 4 } }
+            },
+            retina_detect: true
+          };
+          const configs = {
+            dark: baseConfig,
+            starfield: {
+              ...baseConfig,
+              particles: { ...baseConfig.particles, opacity: { value: 0.8 }, size: { value: 2 }, line_linked: { enable: false }, move: { direction: 'random' } }
+            }
+          };
+          particlesJS('particles-js', configs[theme] || baseConfig);
         };
-        tabBtn.appendChild(closeBtn);
-        tabBtn.onclick = () => {
-          tabsDiv.dataset.active = tab.id;
-          document.getElementById('favicon').href = tab.icon.startsWith('<img') ? tab.icon.match(/src="([^"]+)"/)[1] : document.getElementById('favicon').href;
-          if (tab.type === 'proxy' && tab.content) {
-            contentFrame.srcdoc = tab.content;
-            contentFrame.classList.remove('hidden');
-            settingsPanel.classList.add('hidden');
-            favoritesPanel.classList.add('hidden');
-            aboutPanel.classList.add('hidden');
-          } else if (tab.type === 'new-tab') {
-            contentFrame.srcdoc = tab.content;
-            contentFrame.classList.remove('hidden');
-            settingsPanel.classList.add('hidden');
-            favoritesPanel.classList.add('hidden');
-            aboutPanel.classList.add('hidden');
-          }
-          renderTabs();
-          anime({ targets: tabBtn, scale: [0.9, 1], duration: 300, easing: 'easeOutQuad' });
+        initParticles(settings.theme, settings.particleDensity, settings.particleSpeed, settings.particleType, settings.particleColor);
+      }, [settings.theme, settings.particleDensity, settings.particleSpeed, settings.particleType, settings.particleColor]);
+
+      // Handle theme and cloaking
+      useEffect(() => {
+        document.body.style.background = settings.theme === 'dark' ? 'linear-gradient(180deg, #0a0a0a, #1a1a1a)' : 'linear-gradient(180deg, #000000, #0a0a1a)';
+        const cloakPresets = {
+          google: { title: 'Google', favicon: 'https://www.google.com/favicon.ico' },
+          wikipedia: { title: 'Wikipedia', favicon: 'https://en.wikipedia.org/favicon.ico' },
+          youtube: { title: 'YouTube', favicon: 'https://www.youtube.com/favicon.ico' },
+          classroom: { title: 'Google Classroom', favicon: 'https://classroom.google.com/favicon.ico' }
         };
-        tabsDiv.appendChild(tabBtn);
-      });
-    }
-    tabsDiv.dataset.active = 'new-tab';
-    contentFrame.srcdoc = tabs.find(t => t.id === 'new-tab').content;
-    renderTabs();
-
-    // New tab
-    newTabBtn.addEventListener('click', () => {
-      addTab(Date.now().toString(), null, `
-        <div class="new-tab-content">
-          <h2 class="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 typing-text">Welcome to Emulation's Proxy</h2>
-          <p class="text-lg mb-6 text-gray-300">Browse securely or fly through a 3D particle universe.</p>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('urlInput').focus()">
-              <i class="fas fa-globe text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">Browse</h3>
-              <p class="text-gray-400">Access websites via proxy.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('favoritesBtn').click()">
-              <i class="fas fa-star text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">Favorites</h3>
-              <p class="text-gray-400">Save and revisit sites.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('settingsBtn').click()">
-              <i class="fas fa-cog text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">Settings</h3>
-              <p class="text-gray-400">Customize themes and particles.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('particleViewBtn').click()">
-              <i class="fas fa-cubes text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">3D View</h3>
-              <p class="text-gray-400">Explore 3D particle field.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('aboutBtn').click()">
-              <i class="fas fa-info-circle text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">About</h3>
-              <p class="text-gray-400">Learn about Emulation's Proxy.</p>
-            </div>
-            <div class="card p-6 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700" onclick="document.getElementById('panicBtn').click()">
-              <i class="fas fa-ban text-3xl text-blue-400 mb-3"></i>
-              <h3 class="text-xl font-semibold">Panic</h3>
-              <p class="text-gray-400">Redirect to a safe URL.</p>
-            </div>
-          </div>
-        </div>`, 'New Tab', 'new-tab', 'fas fa-home');
-      tabsDiv.dataset.active = Date.now().toString();
-      renderTabs();
-    });
-
-    // About:Blank
-    cloakBtn.addEventListener('click', () => {
-      try {
-        const currentContent = encodeURIComponent(contentFrame.srcdoc || '');
-        if (currentContent) {
-          const cloakFrame = document.createElement('iframe');
-          cloakFrame.srcdoc = `
-            <!DOCTYPE html>
-            <html>
-              <head><title>${sanitize(cloakToggle.checked ? cloakTitle.value : "Emulation's Proxy")}</title></head>
-              <body style="margin:0;overflow:hidden;">
-                <iframe srcdoc="${currentContent}" style="width:100%;height:100vh;border:0;"></iframe>
-              </body>
-            </html>
-          `;
-          cloakFrame.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:0;z-index:1000;';
-          document.body.appendChild(cloakFrame);
-          Swal.fire({ title: 'Success', text: 'Opened in About:Blank', icon: 'success', timer: 1500, showConfirmButton: false, background: '#1a1a1a', color: '#fff' });
+        if (settings.cloakEnabled) {
+          const preset = settings.cloakPreset;
+          if (preset && cloakPresets[preset]) {
+            document.getElementById('pageTitle').textContent = cloakPresets[preset].title;
+            document.getElementById('favicon').href = cloakPresets[preset].favicon;
+          } else {
+            document.getElementById('pageTitle').textContent = settings.cloakTitle || 'Emulation\'s Proxy';
+            document.getElementById('favicon').href = settings.cloakFavicon || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMTUiIGZpbGw9IiMwMDAwMDAiLz48cGF0aCBkPSJNMTUgMzJBMTcgMTcgMCAwIDEgMzIgMTVBMjAgMjAgMCAwIDEgNDkgMzJBMTcgMTcgMCAwIDEgMzIgNDlBMjAgMjAgMCAwIDEgMTUgMzJaIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmI1MDAiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0xMCAzMkEyMiAyMiAwIDAgMSAzMiAxMEEyNSAyNSAwIDAgMSA1NCAzMkEyMiAyMiAwIDAgMSAzMiA1NEEyNSAyNSAwIDAgMSAxMCAzMloiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2Utb3BhY2l0eT0iMC41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiLz48L3N2Zz4=';
+          }
         } else {
-          errorDiv.textContent = 'No content to cloak';
-          errorDiv.classList.remove('hidden');
-          gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
+          document.getElementById('pageTitle').textContent = 'Emulation\'s Proxy';
+          document.getElementById('favicon').href = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMTUiIGZpbGw9IiMwMDAwMDAiLz48cGF0aCBkPSJNMTUgMzJBMTcgMTcgMCAwIDEgMzIgMTVBMjAgMjAgMCAwIDEgNDkgMzJBMTcgMTcgMCAwIDEgMzIgNDlBMjAgMjAgMCAwIDEgMTUgMzJaIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmI1MDAiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0xMCAzMkEyMiAyMiAwIDAgMSAzMiAxMEEyNSAyNSAwIDAgMSA1NCAzMkEyMiAyMiAwIDAgMSAzMiA1NEEyNSAyNSAwIDAgMSAxMCAzMloiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2Utb3BhY2l0eT0iMC41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiLz48L3N2Zz4=';
         }
-      } catch (err) {
-        errorDiv.textContent = `Cloak error: ${err.message}`;
-        errorDiv.classList.remove('hidden');
-        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
-      }
-    });
+      }, [settings]);
 
-    // Panic button
-    function triggerPanic() {
-      window.location.href = panicUrlInput.value || 'https://www.youtube.com/@Emulation12';
-    }
-    panicBtn.addEventListener('click', triggerPanic);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !particleViewActive) triggerPanic();
-    });
+      // Handle audio
+      useEffect(() => {
+        if (settings.ambientSound && !audioLoaded) {
+          audioRef.current.load();
+          setAudioLoaded(true);
+          audioRef.current.play().catch(err => {
+            setError(`Audio error: ${err.message}`);
+            setSettings({ ...settings, ambientSound: false });
+          });
+        } else if (!settings.ambientSound) {
+          audioRef.current.pause();
+        }
+      }, [settings.ambientSound, audioLoaded]);
 
-    // Full screen
-    fullscreenBtn.addEventListener('click', () => {
-      if (contentFrame.requestFullscreen) contentFrame.requestFullscreen();
-      else if (contentFrame.webkitRequestFullscreen) contentFrame.webkitRequestFullscreen();
-      else if (contentFrame.msRequestFullscreen) contentFrame.msRequestFullscreen();
-      Swal.fire({ title: 'Full Screen', text: 'Entered full-screen mode', icon: 'info', timer: 1500, showConfirmButton: false, background: '#1a1a1a', color: '#fff' });
-    });
-
-    // Proxy request
-    async function fetchWithRetries(url, retries) {
-      const proxyUrls = {
-        allorigins: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-        corsproxy: `https://corsproxy.io/?${encodeURIComponent(url)}`
+      // Proxy fetch with retries
+      const fetchWithRetries = async (url, retries) => {
+        const proxyUrls = {
+          allorigins: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+          corsproxy: `https://corsproxy.io/?${encodeURIComponent(url)}`
+        };
+        for (let i = 0; i < retries; i++) {
+          try {
+            setIsLoading(true);
+            const response = await fetch(proxyUrls[settings.proxy]);
+            if (response.ok) return await response.text();
+            if (response.status === 429) throw new Error('Rate limit exceeded.');
+            throw new Error(`HTTP error ${response.status}`);
+          } catch (err) {
+            if (i === retries - 1) throw err;
+          } finally {
+            setIsLoading(false);
+          }
+        }
       };
-      const selectedProxy = proxySelect.value;
-      for (let i = 0; i < retries; i++) {
-        try {
-          loadingScreen.classList.remove('hidden');
-          const response = await fetch(proxyUrls[selectedProxy]);
-          if (response.ok) return response;
-          if (response.status === 429) throw new Error('Rate limit exceeded.');
-          throw new Error(`HTTP error ${response.status}`);
-        } catch (err) {
-          if (i === retries - 1) throw err;
-        } finally {
-          loadingScreen.classList.add('hidden');
+
+      // Handle URL submission
+      const handleSubmit = async () => {
+        let inputUrl = url.trim();
+        setError('');
+        setActivePanel(null);
+        if (!inputUrl) {
+          setError('Enter a URL');
+          return;
         }
-      }
-    }
-    submitBtn.addEventListener('click', async () => {
-      let url = urlInput.value.trim();
-      errorDiv.classList.add('hidden');
-      contentFrame.classList.add('hidden');
-      settingsPanel.classList.add('hidden');
-      favoritesPanel.classList.add('hidden');
-      aboutPanel.classList.add('hidden');
-      loader.style.display = 'block';
+        if (!inputUrl.match(/^https?:\/\//)) inputUrl = 'https://' + inputUrl;
+        if (!inputUrl.match(/^https?:\/\/.+/)) {
+          setError('Invalid URL');
+          return;
+        }
+        const hostname = new URL(inputUrl).hostname;
+        setNotification(`Going to ${DOMPurify.sanitize(hostname)}`);
+        gsap.fromTo('#notification', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 });
+        gsap.to('#notification', { opacity: 0, delay: 2, duration: 0.5, onComplete: () => setNotification('') });
+        const tabId = Date.now().toString();
+        try {
+          const data = await fetchWithRetries(inputUrl, settings.proxyRetries);
+          setTabs([...tabs.filter(t => t.url !== inputUrl || t.type !== 'proxy'), {
+            id: tabId,
+            url: inputUrl,
+            content: data,
+            label: hostname,
+            type: 'proxy',
+            icon: `<img src="https://www.google.com/s2/favicons?domain=${hostname}" class="w-5 h-5 mr-2" alt="Favicon">`
+          }]);
+          setActiveTab(tabId);
+        } catch (err) {
+          setError(`Failed to load: ${err.message}`);
+          setActiveTab('new-tab');
+        }
+      };
 
-      if (!url) {
-        errorDiv.textContent = 'Enter a URL';
-        errorDiv.classList.remove('hidden');
-        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
-        loader.style.display = 'none';
-        return;
-      }
+      // Components
+      const TabBar = () => (
+        <div className="flex space-x-2" role="tablist">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              id={`tab-${tab.id}`}
+              className={`tab px-4 py-2 rounded-lg ${activeTab === tab.id ? 'active' : ''}`}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setActivePanel(null);
+                anime({ targets: `#tab-${tab.id}`, scale: [0.9, 1], duration: 300, easing: 'easeOutQuad' });
+              }}
+            >
+              <span dangerouslySetInnerHTML={{ __html: tab.icon }} />
+              {DOMPurify.sanitize(tab.label)}
+              <span
+                className="ml-2 text-red-400 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTabs(tabs.filter(t => t.id !== tab.id));
+                  if (activeTab === tab.id) setActiveTab('new-tab');
+                }}
+              >
+                ×
+              </span>
+            </button>
+          ))}
+          <button
+            className="btn-cosmic text-white px-4 py-2 rounded-lg"
+            onClick={() => {
+              const newTabId = Date.now().toString();
+              setTabs([...tabs, {
+                id: newTabId,
+                url: null,
+                content: tabs.find(t => t.id === 'new-tab').content,
+                label: 'New Tab',
+                type: 'new-tab',
+                icon: 'fas fa-home'
+              }]);
+              setActiveTab(newTabId);
+            }}
+            aria-label="New Tab"
+          >
+            <i className="fas fa-plus"></i> New Tab
+          </button>
+        </div>
+      );
 
-      if (!url.match(/^https?:\/\//)) url = 'https://' + url;
-      if (!url.match(/^https?:\/\/.+/)) {
-        errorDiv.textContent = 'Invalid URL';
-        errorDiv.classList.remove('hidden');
-        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
-        loader.style.display = 'none';
-        return;
-      }
+      const ControlPanel = () => (
+        <div className="control-panel p-8 mb-8">
+          <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
+            <input
+              id="urlInput"
+              type="text"
+              placeholder="Enter URL (e.g., example.com)"
+              className="flex-1 border border-gray-600 p-3 rounded-lg bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-200"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+              aria-label="Enter URL"
+            />
+            <button className="btn-cosmic text-white p-3 rounded-lg" onClick={handleSubmit} aria-label="Go">
+              <i className="fas fa-play"></i> Go
+            </button>
+            <button
+              className="btn-cosmic text-white p-3 rounded-lg"
+              onClick={() => {
+                iframeRef.current.requestFullscreen?.();
+                Swal.fire({ title: 'Full Screen', text: 'Entered full-screen mode', icon: 'info', timer: 1500, showConfirmButton: false, background: '#1a1a1a', color: '#fff' });
+              }}
+              aria-label="Full Screen"
+            >
+              <i className="fas fa-expand"></i>
+            </button>
+            <button
+              className="btn-cosmic text-white p-3 rounded-lg"
+              onClick={() => {
+                const hostname = url && new URL(url.match(/^https?:\/\//) ? url : 'https://' + url).hostname;
+                if (url && !favorites.some(f => f.url === url)) {
+                  setFavorites([...favorites, { url, label: hostname }]);
+                  Swal.fire({ title: 'Added', text: `${DOMPurify.sanitize(hostname)} saved`, icon: 'success', timer: 1500, showConfirmButton: false, background: '#1a1a1a', color: '#fff' });
+                }
+              }}
+              aria-label="Add to Favorites"
+            >
+              <i className="fas fa-star"></i>
+            </button>
+          </div>
+          {error && (
+            <div id="error" className="error-message text-center mt-4 p-2 rounded-lg">
+              {error}
+            </div>
+          )}
+          {activePanel === 'settings' && (
+            <div className="toggle-panel">
+              <h2 className="text-lg font-bold mb-4 text-blue-400"><i className="fas fa-cog mr-2"></i> Settings</h2>
+              <div className="space-y-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={settings.cloakEnabled}
+                    onChange={(e) => setSettings({ ...settings, cloakEnabled: e.target.checked })}
+                  />
+                  <span><i className="fas fa-mask mr-2"></i> Enable Tab Cloaking</span>
+                </label>
+                <select
+                  className="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200"
+                  value={settings.cloakPreset}
+                  onChange={(e) => setSettings({ ...settings, cloakPreset: e.target.value })}
+                >
+                  <option value="">Custom</option>
+                  <option value="google">Google</option>
+                  <option value="wikipedia">Wikipedia</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="classroom">Google Classroom</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Custom Page Title"
+                  className="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200"
+                  value={settings.cloakTitle}
+                  onChange={(e) => setSettings({ ...settings, cloakTitle: e.target.value, cloakPreset: '' })}
+                />
+                <input
+                  type="text"
+                  placeholder="Favicon URL"
+                  className="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200"
+                  value={settings.cloakFavicon}
+                  onChange={(e) => setSettings({ ...settings, cloakFavicon: e.target.value, cloakPreset: '' })}
+                />
+                <input
+                  type="text"
+                  placeholder="Panic Button URL"
+                  className="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200"
+                  value={settings.panicUrl}
+                  onChange={(e) => setSettings({ ...settings, panicUrl: e.target.value })}
+                />
+                <button
+                  className="btn-cosmic text-white p-2 rounded-lg w-full"
+                  onClick={() => window.location.href = settings.panicUrl}
+                >
+                  <i className="fas fa-ban mr-2"></i> Panic
+                </button>
+                <button
+                  className="btn-cosmic text-white p-2 rounded-lg w-full"
+                  onClick={() => {
+                    const currentContent = encodeURIComponent(iframeRef.current.srcdoc || '');
+                    if (currentContent) {
+                      const cloakFrame = document.createElement('iframe');
+                      cloakFrame.srcdoc = `
+                        <!DOCTYPE html>
+                        <html>
+                          <head><title>${DOMPurify.sanitize(settings.cloakEnabled ? settings.cloakTitle : "Emulation's Proxy")}</title></head>
+                          <body style="margin:0;overflow:hidden;">
+                            <iframe srcdoc="${currentContent}" style="width:100%;height:100vh;border:0;"></iframe>
+                          </body>
+                        </html>
+                      `;
+                      cloakFrame.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:0;z-index:1000;';
+                      document.body.appendChild(cloakFrame);
+                      Swal.fire({ title: 'Success', text: 'Opened in About:Blank', icon: 'success', timer: 1500, showConfirmButton: false, background: '#1a1a1a', color: '#fff' });
+                    } else {
+                      setError('No content to cloak');
+                    }
+                  }}
+                >
+                  <i className="fas fa-eye-slash mr-2"></i> About:Blank
+                </button>
+                <select
+                  className="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200"
+                  value={settings.theme}
+                  onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
+                >
+                  <option value="dark">Dark</option>
+                  <option value="starfield">Starfield</option>
+                </select>
+                <label className="block"><i className="fas fa-shapes mr-2"></i> Particle Effect</label>
+                <select
+                  className="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200"
+                  value={settings.particleType}
+                  onChange={(e) => setSettings({ ...settings, particleType: e.target.value })}
+                >
+                  <option value="circle">Circle</option>
+                  <option value="star">Star</option>
+                  <option value="triangle">Triangle</option>
+                  <option value="edge">Edge</option>
+                </select>
+                <label className="block"><i className="fas fa-tachometer-alt mr-2"></i> Particle Density</label>
+                <input
+                  type="range"
+                  min="50"
+                  max="300"
+                  value={settings.particleDensity}
+                  onChange={(e) => setSettings({ ...settings, particleDensity: parseInt(e.target.value) })}
+                  className="w-full"
+                />
+                <label className="block"><i className="fas fa-tachometer-alt mr-2"></i> Particle Speed</label>
+                <input
+                  type="range"
+                  min="2"
+                  max="15"
+                  value={settings.particleSpeed}
+                  onChange={(e) => setSettings({ ...settings, particleSpeed: parseInt(e.target.value) })}
+                  className="w-full"
+                />
+                <label className="block"><i className="fas fa-palette mr-2"></i> Particle Color</label>
+                <input
+                  type="color"
+                  value={settings.particleColor}
+                  onChange={(e) => setSettings({ ...settings, particleColor: e.target.value })}
+                  className="w-full h-10 border border-gray-600 rounded-lg bg-gray-700"
+                />
+                <label className="block"><i className="fas fa-adjust mr-2"></i> Background Opacity</label>
+                <input
+                  type="range"
+                  min="0.3"
+                  max="1"
+                  step="0.1"
+                  value={settings.bgOpacity}
+                  onChange={(e) => setSettings({ ...settings, bgOpacity: parseFloat(e.target.value) })}
+                  className="w-full"
+                />
+                <label className="block"><i className="fas fa-bolt mr-2"></i> Animation Intensity</label>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={settings.animIntensity}
+                  onChange={(e) => setSettings({ ...settings, animIntensity: parseFloat(e.target.value) })}
+                  className="w-full"
+                />
+                <label className="block"><i className="fas fa-redo mr-2"></i> Proxy Retry Attempts</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="5"
+                  value={settings.proxyRetries}
+                  onChange={(e) => setSettings({ ...settings, proxyRetries: parseInt(e.target.value) })}
+                  className="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200"
+                />
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={settings.ambientSound}
+                    onChange={(e) => setSettings({ ...settings, ambientSound: e.target.checked })}
+                  />
+                  <span><i className="fas fa-volume-up mr-2"></i> Enable Ambient Sound</span>
+                </label>
+                <label className="block"><i className="fas fa-server mr-2"></i> Proxy Server</label>
+                <select
+                  className="w-full border border-gray-600 p-2 rounded-lg bg-gray-700 text-gray-200"
+                  value={settings.proxy}
+                  onChange={(e) => setSettings({ ...settings, proxy: e.target.value })}
+                >
+                  <option value="allorigins">AllOrigins</option>
+                  <option value="corsproxy">CORS Proxy</option>
+                </select>
+              </div>
+            </div>
+          )}
+          {activePanel === 'favorites' && (
+            <div className="toggle-panel">
+              <h2 className="text-lg font-bold mb-4 text-blue-400"><i className="fas fa-star mr-2"></i> Favorites</h2>
+              <div className="space-y-2">
+                {favorites.map((fav, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-800 p-2 rounded-lg">
+                    <div className="flex items-center">
+                      <img src={`https://www.google.com/s2/favicons?domain=${DOMPurify.sanitize(fav.url)}`} className="w-5 h-5 mr-2" alt="Favicon" />
+                      <a
+                        href="#"
+                        className="text-blue-400 hover:underline"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setUrl(fav.url);
+                          handleSubmit();
+                        }}
+                      >
+                        {DOMPurify.sanitize(fav.label)}
+                      </a>
+                    </div>
+                    <button
+                      className="text-red-400"
+                      onClick={() => setFavorites(favorites.filter((_, i) => i !== index))}
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {activePanel === 'about' && (
+            <div className="toggle-panel">
+              <h2 className="text-lg font-bold mb-4 text-blue-400"><i className="fas fa-info-circle mr-2"></i> About</h2>
+              <div className="space-y-4 text-gray-300">
+                <p><strong>Emulation's Proxy</strong> is a cosmic-themed proxy website for seamless web access.</p>
+                <ul className="list-disc pl-5">
+                  <li><strong>Proxy Access</strong>: Load websites via proxies by entering a URL.</li>
+                  <li><strong>Tab Cloaking</strong>: Disguise page title and favicon (Settings).</li>
+                  <li><strong>Panic Button</strong>: Redirect to a safe URL via Panic or Escape key.</li>
+                  <li><strong>Visuals</strong>: Enjoy Three.js animations and particle effects.</li>
+                  <li><strong>3D View</strong>: Fly through a 3D particle field with WASD and mouse controls.</li>
+                  <li><strong>Themes</strong>: Switch between Dark and Starfield themes.</li>
+                  <li><strong>Ambient Sound</strong>: Toggle space-themed audio.</li>
+                  <li><strong>Socials</strong>: <a href="https://www.youtube.com/@Emulation12" target="_blank" className="text-blue-400 hover:underline"><i className="fab fa-youtube mr-1"></i> YouTube (@Emulation12)</a>.</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+      );
 
-      const hostname = new URL(url).hostname;
-      notification.textContent = `Going to ${sanitize(hostname)}`;
-      notification.classList.remove('hidden');
-      gsap.fromTo(notification, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 });
-      gsap.to(notification, { opacity: 0, delay: 2, duration: 0.5, onComplete: () => notification.classList.add('hidden') });
+      return (
+        <>
+          <div id="loading-screen" className={isLoading ? '' : 'hidden'}>
+            <svg width="80" height="80" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="30" fill="none" stroke="#4b6cb7" strokeWidth="4" strokeOpacity="0.5"/>
+              <circle cx="32" cy="32" r="30" fill="none" stroke="#9f7aea" strokeWidth="4" strokeDasharray="94" strokeDashoffset="47">
+                <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.5s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+            <div id="loading-text">Loading Emulation's Proxy...</div>
+          </div>
+          <div className={`top-bar ${isParticleView ? 'hidden' : ''}`}>
+            <TabBar />
+            <div className="flex space-x-2">
+              <button
+                className="btn-cosmic text-white px-4 py-2 rounded-lg"
+                onClick={() => setActivePanel(activePanel === 'settings' ? null : 'settings')}
+                aria-label="Settings"
+              >
+                <i className="fas fa-cog"></i>
+              </button>
+              <button
+                className="btn-cosmic text-white px-4 py-2 rounded-lg"
+                onClick={() => setActivePanel(activePanel === 'favorites' ? null : 'favorites')}
+                aria-label="Favorites"
+              >
+                <i className="fas fa-star"></i>
+              </button>
+              <button
+                className="btn-cosmic text-white px-4 py-2 rounded-lg"
+                onClick={() => setActivePanel(activePanel === 'about' ? null : 'about')}
+                aria-label="About"
+              >
+                <i className="fas fa-info-circle"></i>
+              </button>
+              <button
+                className="btn-cosmic text-white px-4 py-2 rounded-lg"
+                onClick={() => {
+                  setIsParticleView(!isParticleView);
+                  Swal.fire({
+                    title: isParticleView ? 'Exit 3D View' : '3D Star Field',
+                    text: isParticleView ? '' : 'Use WASD, R/F, mouse, Esc to exit.',
+                    icon: 'info',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: '#1a1a1a',
+                    color: '#fff'
+                  });
+                }}
+                aria-label="3D Particle View"
+              >
+                {isParticleView ? <><i className="fas fa-times"></i> Exit 3D View</> : <><i className="fas fa-cubes"></i> 3D View</>}
+              </button>
+            </div>
+          </div>
+          <div className={`max-w-5xl mx-auto p-8 w-full mt-20 z-10 ${isParticleView ? 'hidden' : ''}`}>
+            <h1 className="text-5xl font-extrabold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+              <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMTUiIGZpbGw9IiMwMDAwMDAiLz48cGF0aCBkPSJNMTUgMzJBMTcgMTcgMCAwIDEgMzIgMTVBMjAgMjAgMCAwIDEgNDkgMzJBMTcgMTcgMCAwIDEgMzIgNDlBMjAgMjAgMCAwIDEgMTUgMzJaIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmI1MDAiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik0xMCAzMkEyMiAyMiAwIDAgMSAzMiAxMEEyNSAyNSAwIDAgMSA1NCAzMkEyMiAyMiAwIDAgMSAzMiA1NEEyNSAyNSAwIDAgMSAxMCAzMloiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2Utb3BhY2l0eT0iMC41IiBzdHJva2UtZGFzaGFycmF5PSIzLDMiLz48L3N2Zz4=" className="w-12 h-12 mr-2" alt="Emulation's Proxy Logo" />
+              Emulation's Proxy
+            </h1>
+            <ControlPanel />
+            <div className="relative rounded-lg overflow-hidden">
+              <div id="loader" className="loader" style={{ display: isLoading ? 'block' : 'none' }}>
+                <svg width="64" height="64" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="22" cy="22" r="20" fill="none" stroke="#4b6cb7" strokeOpacity=".3" strokeWidth="2"/>
+                  <circle cx="22" cy="22" r="20" fill="none" stroke="#9f7aea" strokeDasharray="90" strokeDashoffset="60" strokeWidth="2">
+                    <animateTransform attributeName="transform" type="rotate" from="0 22 22" to="360 22 22" dur="1s" repeatCount="indefinite"/>
+                  </circle>
+                </svg>
+              </div>
+              <iframe
+                ref={iframeRef}
+                className={`w-full h-[700px] border-0 ${isParticleView ? 'hidden' : ''}`}
+                srcDoc={tabs.find(t => t.id === activeTab)?.content || ''}
+              ></iframe>
+            </div>
+            {notification && (
+              <div id="notification" className="notification fixed bottom-4 right-4 p-4 text-white">
+                {notification}
+              </div>
+            )}
+          </div>
+          <audio ref={audioRef} id="ambientAudio" preload="auto" loop>
+            <source src="https://cdn.pixabay.com/audio/2025/03/12/12-ambient-calm-space-music-312291.mp3" type="audio/mpeg" />
+          </audio>
+        </>
+      );
+    };
 
-      const tabId = Date.now().toString();
-      tabsDiv.dataset.active = tabId;
-      const tabBtn = document.createElement('button');
-      tabBtn.className = 'tab text-gray-200 px-4 py-2 rounded-lg loading';
-      tabBtn.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=${hostname}" class="w-5 h-5 mr-2" alt="Favicon">${sanitize(hostname)}`;
-      tabsDiv.appendChild(tabBtn);
-      anime({ targets: tabBtn, scale: [0.9, 1], duration: 300, easing: 'easeOutQuad' });
-
-      try {
-        const response = await fetchWithRetries(url, parseInt(proxyRetries.value));
-        const data = await response.text();
-        contentFrame.srcdoc = data;
-        contentFrame.classList.remove('hidden');
-        loader.style.display = 'none';
-        addTab(tabId, url, data, hostname, 'proxy', `<img src="https://www.google.com/s2/favicons?domain=${hostname}" class="w-5 h-5 mr-2" alt="Favicon">`);
-        renderTabs();
-      } catch (err) {
-        errorDiv.textContent = `Failed to load: ${err.message}`;
-        errorDiv.classList.remove('hidden');
-        gsap.from(errorDiv, { opacity: 0, y: 10, duration: 0.5 });
-        loader.style.display = 'none';
-        tabs = tabs.filter(t => t.id !== tabId);
-        tabsDiv.dataset.active = 'new-tab';
-        contentFrame.srcdoc = tabs.find(t => t.id === 'new-tab').content;
-        contentFrame.classList.remove('hidden');
-        renderTabs();
-      }
-    });
+    // Render
+    ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
 </html>
